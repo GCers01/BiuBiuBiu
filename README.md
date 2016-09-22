@@ -1,2 +1,2 @@
 # BiuBiuBiu
-App for plan your life
+App for planning your life
