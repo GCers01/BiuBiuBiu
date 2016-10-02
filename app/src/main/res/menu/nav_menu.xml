@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_all_plan"
+            android:icon="@drawable/ic_action_name"
+            android:title="任务清单"
+            android:checkable="false"/>
+        <item
+            android:id="@+id/nav_countdown"
+            android:icon="@drawable/ic_action_name"
+            android:title="倒计时"
+            android:checkable="false"/>
+        <item
+            android:id="@+id/nav_calendar"
+            android:icon="@drawable/ic_action_name"
+            android:title="日历"
+            android:checkable="false"/>
+        <item
+            android:id="@+id/nav_add_list"
+            android:icon="@drawable/ic_action_name"
+            android:title="添加清单"
+            android:checkable="false"/>
+
+        <item
+            android:id="@+id/nav_list_manager"
+            android:icon="@drawable/ic_action_name"
+            android:title="倒计时"
+            android:checkable="false"/>
+    </group>
+
+</menu>
