@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "me.price.nicelife"
-        minSdkVersion 21
+        minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -40,4 +40,5 @@ dependencies {
     compile 'com.libaml.android.view.chip:AndroidChipLayout:1.0.3'
     compile 'com.github.lawloretienne:discreteslider:0.0.7'
     compile 'com.github.devlight.navigationtabbar:navigationtabbar:1.2.5'
+    compile 'com.mylhyl:commonrefreshlayout:2.0'
 }

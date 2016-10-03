@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,10 +16,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.gigamole.navigationtabbar.ntb.NavigationTabBar;
+import com.mylhyl.crlayout.SwipeRefreshAdapterView;
+import com.mylhyl.crlayout.SwipeRefreshRecyclerView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import me.price.nicelife.R;
+import me.price.nicelife.datas.datamanager.CountdownAll;
 
 /**
  * Created by jx-pc on 2016/9/23.
@@ -32,6 +39,12 @@ public class MainFragment extends BaseFragment {
     ListView listView;
     ArrayAdapter<String> itemsAdapter;
     ArrayList<String> items;
+
+    SwipeRefreshRecyclerView countdownRecyclerView;
+    CountdownAdapter countdownAdapter;
+    List<String> objects = new ArrayList<>();
+    private int index = 0;
+    private int footerIndex = 10;
 
     private void initNavigationTabBar() {
         viewPager = (ViewPager) view.findViewById(R.id.vp_horizontal_ntb);
@@ -54,37 +67,64 @@ public class MainFragment extends BaseFragment {
             @Override
             public Object instantiateItem(final ViewGroup container, final int position) {
 
-                View view = LayoutInflater.from(
+                View pageView = LayoutInflater.from(
                         getActivity().getBaseContext()).inflate(R.layout.item_vp, null, false);
                 TextView txtPage;
 
                 switch (position)
                 {
                     case 0:
-                        setListViewPager(view);
-//                        view = LayoutInflater.from(
-//                                getActivity().getBaseContext()).inflate(R.layout.view_pager_countdown, null, false);
-//                        txtPage = (TextView) view.findViewById(R.id.txt_vp_item_page);
-//                        txtPage.setText(String.format("Page #%d\ncountdown", position));
+                        pageView = LayoutInflater.from(
+                                getContext()).inflate(R.layout.view_pager_list, null, false);
+                        setListViewPager(pageView);
                         break;
                     case 1:
-                        view = LayoutInflater.from(
-                                getActivity().getBaseContext()).inflate(R.layout.view_pager_countdown, null, false);
-                        txtPage = (TextView) view.findViewById(R.id.txt_vp_item_page);
-                        txtPage.setText(String.format("Page #%d\ncountdown", position));
+                        pageView = LayoutInflater.from(
+                                getContext()).inflate(R.layout.view_pager_countdown, null, false);
+                        countdownRecyclerView = (SwipeRefreshRecyclerView)pageView.findViewById(R.id.countdownSwipeRefresh);
+                        countdownRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+                        countdownRecyclerView.setOnListLoadListener(new SwipeRefreshAdapterView.OnListLoadListener() {
+                            @Override
+                            public void onListLoad() {
+//                                ++index;
+//                                int count = footerIndex + 5;
+//                                for (int i = footerIndex; i < count; i++) {
+//                                    objects.add("上拉 = " + i);
+//                                }
+//                                footerIndex = count;
+                                countdownAdapter.notifyDataSetChanged();
+                                countdownRecyclerView.setLoading(false);
+                            }
+                        });
+                        countdownRecyclerView.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                            @Override
+                            public void onRefresh() {
+                                countdownRecyclerView.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        CountdownAll.refresh();
+                                        countdownAdapter.notifyDataSetChanged();
+                                        countdownRecyclerView.setRefreshing(false);
+                                    }
+                                }, 1000);
+                            }
+                        });
+                        countdownAdapter = new CountdownAdapter();
+                        countdownRecyclerView.setAdapter(countdownAdapter);
+                        countdownRecyclerView.setEmptyText("数据又没有了!");
                         break;
                     case 2:
-                        view = LayoutInflater.from(
-                                getActivity().getBaseContext()).inflate(R.layout.view_pager_mine, null, false);
-                        txtPage = (TextView) view.findViewById(R.id.txt_vp_item_page);
+                        pageView = LayoutInflater.from(
+                                getContext()).inflate(R.layout.view_pager_mine, null, false);
+                        txtPage = (TextView) pageView.findViewById(R.id.txt_vp_item_page);
                         txtPage.setText(String.format("Page #%d\nmine", position));
                         break;
                     default:;
                 }
 
-                container.addView(view);
+                container.addView(pageView);
 
-                return view;
+                return pageView;
             }
         });
 
@@ -151,11 +191,8 @@ public class MainFragment extends BaseFragment {
         navigationTabBar.setBehaviorEnabled(true);
     }
 
-    private void setListViewPager(View _view) {
-        _view = LayoutInflater.from(
-                getActivity().getBaseContext()).inflate(R.layout.view_pager_list, null, false);
-
-        listView = (ListView)_view.findViewById(R.id.list_view);
+    private void setListViewPager(View pageView) {
+        listView = (ListView)pageView.findViewById(R.id.list_view);
 
         items = new ArrayList<>();
 
@@ -187,5 +224,60 @@ public class MainFragment extends BaseFragment {
         Bundle args = new Bundle();
         fragment.setArguments(args);
         return  fragment;
+    }
+
+    class CountdownAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+        private int active = -1;
+
+        @Override
+        public int getItemCount() {
+            return CountdownAll.getSize();
+        }
+
+        @Override
+        public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            MyViewHolder holder = new MyViewHolder(LayoutInflater.from(
+                    getContext()).inflate(R.layout.countdown_recycler_view_item, parent,
+                    false));
+            return holder;
+        }
+
+        @Override
+        public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
+            final TextView title = ((MyViewHolder) holder).title;
+            title.setText(CountdownAll.get(position).getTitle());
+            final TextView content = ((MyViewHolder) holder).content;
+            content.setText(CountdownAll.get(position).getContent());
+            content.measure(View.MeasureSpec.getMode(0), 0);
+            ((MyViewHolder) holder).height = content.getMeasuredHeight();
+            if(position != active) {
+                ((MyViewHolder) holder).content.setHeight(0);
+            }
+        }
+
+        class MyViewHolder extends RecyclerView.ViewHolder{
+            TextView title;
+            TextView content;
+            int height;
+
+            public MyViewHolder(View view) {
+                super(view);
+                title = (TextView) view.findViewById(R.id.countdown_title);
+                content = (TextView) view.findViewById(R.id.contentdown_content);
+
+                title.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if(content.getHeight() == height) {
+                            content.setHeight(0);
+                        }
+                        else {
+                            content.setHeight(height);
+                        }
+                    }
+                });
+            }
+        }
     }
 }

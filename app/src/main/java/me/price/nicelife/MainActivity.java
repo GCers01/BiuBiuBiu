@@ -13,12 +13,12 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 
 import java.util.ArrayList;
 
+import me.price.nicelife.datas.datamanager.CountdownAll;
 import me.price.nicelife.fragments.CalendarFragment;
 import me.price.nicelife.fragments.CountdownFragment;
 import me.price.nicelife.fragments.MainFragment;
@@ -42,6 +42,11 @@ public class MainActivity extends AppCompatActivity {
         findAll();
         initToolbar();
         initDrawerLayout();
+        initData();
+    }
+
+    private void initData() {
+        CountdownAll.init();
     }
 
     private void initToolbar() {
@@ -111,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void clearNavigationSelected() {
         for(int i=0;i<navigationView.getMenu().size();i++){
-            Log.e("TAG---", Integer.toString(i));
             navigationView.getMenu().getItem(i).setChecked(false);
         }
     }
@@ -122,18 +126,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setFragmentManager() {
-
         fragmentManager = getSupportFragmentManager();
     }
 
     private void addNewFragment(Fragment fragment, String title, MenuItem menuItem) {
-
         setFragment(fragment, title, menuItem);
         fragmentDataList.add(FragmentData.newInstance(fragment, title, menuItem));
     }
 
     private void setFragment(Fragment fragment, String title, MenuItem menuItem) {
-
         fragmentManager.beginTransaction().replace(R.id.fragment_content, fragment).commit();
         setTitle(title);
         setSelected(menuItem);
@@ -144,7 +145,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     protected String getName() {
-
         return MainActivity.class.getName();
     }
 
@@ -160,12 +160,6 @@ public class MainActivity extends AppCompatActivity {
         setFragmentManager();
 
         addNewFragment(mainFragment, "今日任务", navigationView.getMenu().getItem(0));
-
-        testNTB();
-    }
-
-    private void testNTB() {
-
     }
 
     @Override
