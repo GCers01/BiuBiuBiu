@@ -41,4 +41,5 @@ dependencies {
     compile 'com.github.lawloretienne:discreteslider:0.0.7'
     compile 'com.github.devlight.navigationtabbar:navigationtabbar:1.2.5'
     compile 'com.mylhyl:commonrefreshlayout:2.0'
+    compile 'com.basgeekball:awesome-validation:1.3'
 }

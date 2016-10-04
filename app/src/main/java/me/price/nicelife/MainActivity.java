@@ -129,18 +129,20 @@ public class MainActivity extends AppCompatActivity {
         fragmentManager = getSupportFragmentManager();
     }
 
-    private void addNewFragment(Fragment fragment, String title, MenuItem menuItem) {
-        setFragment(fragment, title, menuItem);
-        fragmentDataList.add(FragmentData.newInstance(fragment, title, menuItem));
-    }
-
     private void setFragment(Fragment fragment, String title, MenuItem menuItem) {
         fragmentManager.beginTransaction().replace(R.id.fragment_content, fragment).commit();
         setTitle(title);
-        setSelected(menuItem);
+        if(menuItem != null)
+            setSelected(menuItem);
     }
 
-    private void setFragment(FragmentData data) {
+    private void setFragment(Fragment fragment, String title) {
+        fragmentManager.beginTransaction().replace(R.id.fragment_content, fragment).commit();
+        setTitle(title);
+        clearNavigationSelected();
+    }
+
+    public void setFragment(FragmentData data) {
         setFragment(data.getFragment(), data.getTitle(), data.getMenuItem());
     }
 
@@ -160,6 +162,16 @@ public class MainActivity extends AppCompatActivity {
         setFragmentManager();
 
         addNewFragment(mainFragment, "今日任务", navigationView.getMenu().getItem(0));
+    }
+
+    public void addNewFragment(Fragment fragment, String title, MenuItem menuItem) {
+        setFragment(fragment, title, menuItem);
+        fragmentDataList.add(FragmentData.newInstance(fragment, title, menuItem));
+    }
+
+    public void addNewFragment(Fragment fragment, String title) {
+        setFragment(fragment, title);
+        fragmentDataList.add(FragmentData.newInstance(fragment, title, null));
     }
 
     @Override

@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -22,6 +23,7 @@ import com.mylhyl.crlayout.SwipeRefreshRecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.price.nicelife.MainActivity;
 import me.price.nicelife.R;
 import me.price.nicelife.datas.datamanager.CountdownAll;
 
@@ -251,30 +253,47 @@ public class MainFragment extends BaseFragment {
             content.setText(CountdownAll.get(position).getContent());
             content.measure(View.MeasureSpec.getMode(0), 0);
             ((MyViewHolder) holder).height = content.getMeasuredHeight();
+//            final Button button = ((MyViewHolder) holder).editButton;
+//            button.measure(View.MeasureSpec.getMode(0), 0);
+//            ((MyViewHolder) holder).buttonHeight = button.getMeasuredHeight();
             if(position != active) {
-                ((MyViewHolder) holder).content.setHeight(0);
+                content.setHeight(0);
+//                button.setHeight(0);
             }
         }
 
         class MyViewHolder extends RecyclerView.ViewHolder{
             TextView title;
             TextView content;
+            Button finishButton;
+            Button editButton;
             int height;
+            int buttonHeight;
 
             public MyViewHolder(View view) {
                 super(view);
                 title = (TextView) view.findViewById(R.id.countdown_title);
                 content = (TextView) view.findViewById(R.id.contentdown_content);
+                finishButton = (Button) view.findViewById(R.id.finish_button);
+                editButton = (Button) view.findViewById(R.id.edit_button);
 
                 title.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         if(content.getHeight() == height) {
                             content.setHeight(0);
+                            editButton.setHeight(0);
                         }
                         else {
                             content.setHeight(height);
+                            editButton.setHeight(buttonHeight);
                         }
+                    }
+                });
+                editButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        ((MainActivity)getActivity()).addNewFragment(CreateCountdownFragment.newInstance(), title.getText().toString());
                     }
                 });
             }
