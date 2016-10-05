@@ -174,6 +174,14 @@ public class MainActivity extends AppCompatActivity {
         fragmentDataList.add(FragmentData.newInstance(fragment, title, null));
     }
 
+    public void backFragment() {
+        int size = fragmentDataList.size();
+        if(size > 1) {
+            setFragment(fragmentDataList.get(size - 2));
+            fragmentDataList.remove(size - 1);
+        }
+    }
+
     @Override
     public void onPostCreate(Bundle savedInstanceState) {
 
@@ -211,9 +219,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (size > 1) {
 
-                setFragment(fragmentDataList.get(size - 2));
-
-                fragmentDataList.remove(size - 1);
+                backFragment();
 
                 return false;
 

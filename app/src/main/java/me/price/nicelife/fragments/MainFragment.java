@@ -3,6 +3,7 @@ package me.price.nicelife.fragments;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -114,6 +115,14 @@ public class MainFragment extends BaseFragment {
                         countdownAdapter = new CountdownAdapter();
                         countdownRecyclerView.setAdapter(countdownAdapter);
                         countdownRecyclerView.setEmptyText("数据又没有了!");
+
+                        FloatingActionButton addCountdownButton = (FloatingActionButton) pageView.findViewById(R.id.fab);
+                        addCountdownButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                ((MainActivity)getActivity()).addNewFragment(CreateCountdownFragment.newInstance(), "新建倒计时");
+                            }
+                        });
                         break;
                     case 2:
                         pageView = LayoutInflater.from(
@@ -215,9 +224,13 @@ public class MainFragment extends BaseFragment {
 
         view = inflater.inflate(R.layout.main_fragment, container, false);
 
-        initNavigationTabBar();
-
         return view;
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        initNavigationTabBar();
     }
 
     public static MainFragment newInstance() {
@@ -247,19 +260,38 @@ public class MainFragment extends BaseFragment {
 
         @Override
         public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
+
             final TextView title = ((MyViewHolder) holder).title;
             title.setText(CountdownAll.get(position).getTitle());
             final TextView content = ((MyViewHolder) holder).content;
             content.setText(CountdownAll.get(position).getContent());
             content.measure(View.MeasureSpec.getMode(0), 0);
             ((MyViewHolder) holder).height = content.getMeasuredHeight();
-//            final Button button = ((MyViewHolder) holder).editButton;
-//            button.measure(View.MeasureSpec.getMode(0), 0);
-//            ((MyViewHolder) holder).buttonHeight = button.getMeasuredHeight();
+            ((MyViewHolder) holder).id = CountdownAll.get(position).getId() - 1;
             if(position != active) {
                 content.setHeight(0);
-//                button.setHeight(0);
             }
+
+            title.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    MyViewHolder h = ((MyViewHolder) holder);
+                    if(h.content.getHeight() == h.height) {
+                        h.content.setHeight(0);
+                    }
+                    else {
+                        h.content.setHeight(h.height);
+                    }
+                }
+            });
+
+            ((MyViewHolder) holder).editButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    MyViewHolder h = ((MyViewHolder) holder);
+                    ((MainActivity)getActivity()).addNewFragment(ChangeCountdownFragment.newInstance(h.id), title.getText().toString());
+                }
+            });
         }
 
         class MyViewHolder extends RecyclerView.ViewHolder{
@@ -267,8 +299,8 @@ public class MainFragment extends BaseFragment {
             TextView content;
             Button finishButton;
             Button editButton;
+            int id;
             int height;
-            int buttonHeight;
 
             public MyViewHolder(View view) {
                 super(view);
@@ -276,26 +308,7 @@ public class MainFragment extends BaseFragment {
                 content = (TextView) view.findViewById(R.id.contentdown_content);
                 finishButton = (Button) view.findViewById(R.id.finish_button);
                 editButton = (Button) view.findViewById(R.id.edit_button);
-
-                title.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if(content.getHeight() == height) {
-                            content.setHeight(0);
-                            editButton.setHeight(0);
-                        }
-                        else {
-                            content.setHeight(height);
-                            editButton.setHeight(buttonHeight);
-                        }
-                    }
-                });
-                editButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        ((MainActivity)getActivity()).addNewFragment(CreateCountdownFragment.newInstance(), title.getText().toString());
-                    }
-                });
+                id = 0;
             }
         }
     }
