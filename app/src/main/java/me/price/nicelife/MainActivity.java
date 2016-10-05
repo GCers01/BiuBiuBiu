@@ -1,8 +1,12 @@
 package me.price.nicelife;
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -17,11 +21,13 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import me.price.nicelife.datas.datamanager.CountdownAll;
 import me.price.nicelife.fragments.CalendarFragment;
 import me.price.nicelife.fragments.CountdownFragment;
 import me.price.nicelife.fragments.MainFragment;
+import me.price.nicelife.utils.Utils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -162,6 +168,23 @@ public class MainActivity extends AppCompatActivity {
         setFragmentManager();
 
         addNewFragment(mainFragment, "今日任务", navigationView.getMenu().getItem(0));
+
+        Intent intent = new Intent(getContext(), BroadcastReceiver.class);
+        PendingIntent sender = PendingIntent.getBroadcast(getContext(),
+                0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        // Schedule the alarm!
+        AlarmManager am = (AlarmManager) getContext()
+                .getSystemService(Context.ALARM_SERVICE);
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 21);
+        calendar.set(Calendar.MINUTE, 30);
+        calendar.set(Calendar.SECOND, 10);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
+                Utils.INTERVAL, sender);
     }
 
     public void addNewFragment(Fragment fragment, String title, MenuItem menuItem) {
