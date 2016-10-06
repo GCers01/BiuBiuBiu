@@ -35,11 +35,13 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.google.code.gson:gson:2.5'
     compile 'com.github.bumptech.glide:glide:3.7.0'
-
     compile 'com.google.android.gms:play-services-appindexing:8.1.0'
     compile 'com.libaml.android.view.chip:AndroidChipLayout:1.0.3'
     compile 'com.github.lawloretienne:discreteslider:0.0.7'
     compile 'com.github.devlight.navigationtabbar:navigationtabbar:1.2.5'
     compile 'com.mylhyl:commonrefreshlayout:2.0'
     compile 'com.basgeekball:awesome-validation:1.3'
+    compile 'com.bigkoo:pickerview:2.0.8'
+    compile files('D:/git_android/NiceLife/libs/ormlite-android-5.0.jar')
+    compile files('D:/git_android/NiceLife/libs/ormlite-core-5.0.jar')
 }

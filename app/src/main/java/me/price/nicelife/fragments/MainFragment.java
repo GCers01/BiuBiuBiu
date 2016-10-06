@@ -26,7 +26,10 @@ import java.util.List;
 
 import me.price.nicelife.MainActivity;
 import me.price.nicelife.R;
+import me.price.nicelife.bean.Plan;
 import me.price.nicelife.datas.datamanager.CountdownAll;
+import me.price.nicelife.db.PlanDao;
+import me.price.nicelife.db.PlanListDao;
 
 /**
  * Created by jx-pc on 2016/9/23.
@@ -48,6 +51,11 @@ public class MainFragment extends BaseFragment {
     List<String> objects = new ArrayList<>();
     private int index = 0;
     private int footerIndex = 10;
+
+
+    SwipeRefreshRecyclerView taskRecyclerView;
+    TaskAdapter taskAdapter;
+    List<Plan> plans;
 
     private void initNavigationTabBar() {
         viewPager = (ViewPager) view.findViewById(R.id.vp_horizontal_ntb);
@@ -78,8 +86,42 @@ public class MainFragment extends BaseFragment {
                 {
                     case 0:
                         pageView = LayoutInflater.from(
-                                getContext()).inflate(R.layout.view_pager_list, null, false);
-                        setListViewPager(pageView);
+                                getContext()).inflate(R.layout.view_pager_task, null, false);
+                        refreshPlan();
+                        taskRecyclerView = (SwipeRefreshRecyclerView)pageView.findViewById(R.id.taskSwipeRefresh);
+                        taskRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+                        taskRecyclerView.setOnListLoadListener(new SwipeRefreshAdapterView.OnListLoadListener() {
+                            @Override
+                            public void onListLoad() {
+                                refreshPlan();
+                                taskAdapter.notifyDataSetChanged();
+                                taskRecyclerView.setLoading(false);
+                            }
+                        });
+                        taskRecyclerView.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                            @Override
+                            public void onRefresh() {
+                                taskRecyclerView.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        CountdownAll.refresh();
+                                        taskAdapter.notifyDataSetChanged();
+                                        taskRecyclerView.setRefreshing(false);
+                                    }
+                                }, 1000);
+                            }
+                        });
+                        taskAdapter = new TaskAdapter();
+                        taskRecyclerView.setAdapter(taskAdapter);
+                        taskRecyclerView.setEmptyText("数据又没有了!");
+
+                        FloatingActionButton addTaskButton = (FloatingActionButton) pageView.findViewById(R.id.create_task_fab);
+                        addTaskButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                ((MainActivity)getActivity()).addNewFragment(CreateTaskFragment.newInstance(), "新建计划");
+                            }
+                        });
                         break;
                     case 1:
                         pageView = LayoutInflater.from(
@@ -202,6 +244,11 @@ public class MainFragment extends BaseFragment {
         navigationTabBar.setBehaviorEnabled(true);
     }
 
+    private void refreshPlan() {
+        plans = new PlanDao(getContext()).listByPlanListId(new PlanListDao(getContext()).getByName("default").get(0).getId());
+        plans = new PlanDao(getContext()).getPlanAll();
+    }
+
     private void setListViewPager(View pageView) {
         listView = (ListView)pageView.findViewById(R.id.list_view);
 
@@ -251,8 +298,8 @@ public class MainFragment extends BaseFragment {
         }
 
         @Override
-        public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            MyViewHolder holder = new MyViewHolder(LayoutInflater.from(
+        public CountdownViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            CountdownViewHolder holder = new CountdownViewHolder(LayoutInflater.from(
                     getContext()).inflate(R.layout.countdown_recycler_view_item, parent,
                     false));
             return holder;
@@ -261,13 +308,13 @@ public class MainFragment extends BaseFragment {
         @Override
         public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
 
-            final TextView title = ((MyViewHolder) holder).title;
+            final TextView title = ((CountdownViewHolder) holder).title;
             title.setText(CountdownAll.get(position).getTitle());
-            final TextView content = ((MyViewHolder) holder).content;
+            final TextView content = ((CountdownViewHolder) holder).content;
             content.setText(CountdownAll.get(position).getContent());
             content.measure(View.MeasureSpec.getMode(0), 0);
-            ((MyViewHolder) holder).height = content.getMeasuredHeight();
-            ((MyViewHolder) holder).id = CountdownAll.get(position).getId() - 1;
+            ((CountdownViewHolder) holder).height = content.getMeasuredHeight();
+            ((CountdownViewHolder) holder).id = CountdownAll.get(position).getId() - 1;
             if(position != active) {
                 content.setHeight(0);
             }
@@ -275,7 +322,7 @@ public class MainFragment extends BaseFragment {
             title.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    MyViewHolder h = ((MyViewHolder) holder);
+                    CountdownViewHolder h = ((CountdownViewHolder) holder);
                     if(h.content.getHeight() == h.height) {
                         h.content.setHeight(0);
                     }
@@ -285,16 +332,16 @@ public class MainFragment extends BaseFragment {
                 }
             });
 
-            ((MyViewHolder) holder).editButton.setOnClickListener(new View.OnClickListener() {
+            ((CountdownViewHolder) holder).editButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    MyViewHolder h = ((MyViewHolder) holder);
+                    CountdownViewHolder h = ((CountdownViewHolder) holder);
                     ((MainActivity)getActivity()).addNewFragment(ChangeCountdownFragment.newInstance(h.id), title.getText().toString());
                 }
             });
         }
 
-        class MyViewHolder extends RecyclerView.ViewHolder{
+        class CountdownViewHolder extends RecyclerView.ViewHolder{
             TextView title;
             TextView content;
             Button finishButton;
@@ -302,7 +349,7 @@ public class MainFragment extends BaseFragment {
             int id;
             int height;
 
-            public MyViewHolder(View view) {
+            public CountdownViewHolder(View view) {
                 super(view);
                 title = (TextView) view.findViewById(R.id.countdown_title);
                 content = (TextView) view.findViewById(R.id.contentdown_content);
@@ -312,4 +359,48 @@ public class MainFragment extends BaseFragment {
             }
         }
     }
+
+    class TaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+        @Override
+        public int getItemCount() {
+            return plans.size();
+        }
+
+        @Override
+        public TaskViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            TaskViewHolder holder = new TaskViewHolder(LayoutInflater.from(
+                    getContext()).inflate(R.layout.task_recycler_view_item, parent,
+                    false));
+            return holder;
+        }
+
+        @Override
+        public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
+            final Plan plan = plans.get(position);
+            TaskViewHolder taskViewHolder = ((TaskViewHolder) holder);
+            taskViewHolder.plan = plan;
+            final TextView title = ((TaskViewHolder) holder).title;
+            title.setText(plan.getTitle());
+            title.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    TaskViewHolder h = ((TaskViewHolder) holder);
+                    ((MainActivity) getActivity()).addNewFragment(ChangeTaskFragment.newInstance(plan), "计划详情");
+                }
+            });
+        }
+
+        class TaskViewHolder extends RecyclerView.ViewHolder{
+            TextView title;
+            Plan plan;
+
+            public TaskViewHolder(View view) {
+                super(view);
+                title = (TextView) view.findViewById(R.id.task_title);
+            }
+        }
+    }
+
+
 }

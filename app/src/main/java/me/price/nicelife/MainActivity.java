@@ -1,12 +1,8 @@
 package me.price.nicelife;
 
-import android.app.AlarmManager;
 import android.app.AlertDialog;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -21,13 +17,13 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 
-import me.price.nicelife.datas.datamanager.CountdownAll;
+import me.price.nicelife.bean.PlanList;
+import me.price.nicelife.db.PlanListDao;
+import me.price.nicelife.fragments.AlarmListFragment;
 import me.price.nicelife.fragments.CalendarFragment;
 import me.price.nicelife.fragments.CountdownFragment;
 import me.price.nicelife.fragments.MainFragment;
-import me.price.nicelife.utils.Utils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,26 +40,19 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<FragmentData> fragmentDataList = new ArrayList<>();
 
     private void initAll() {
-
         findAll();
         initToolbar();
         initDrawerLayout();
-        initData();
-    }
-
-    private void initData() {
-        CountdownAll.init();
+        initDB();
     }
 
     private void initToolbar() {
-
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        setTitle("今日任务");
+        setTitle("今日计划");
     }
 
     private void initDrawerLayout() {
-
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 
         actionBarDrawerToggle = new ActionBarDrawerToggle(
@@ -97,13 +86,13 @@ public class MainActivity extends AppCompatActivity {
                         switch (id) {
 
                             case R.id.nav_all_plan:
-                                addNewFragment(mainFragment, "今日任务", menuItem);
+                                addNewFragment(mainFragment, "今日计划", menuItem);
                                 break;
                             case R.id.nav_countdown:
                                 addNewFragment(countdownFragment, "倒计时", menuItem);
                                 break;
                             case R.id.nav_calendar:
-                                addNewFragment(calendarFragment, "日历", menuItem);
+                                addNewFragment(AlarmListFragment.newInstance(), "闹钟提醒", menuItem);
                                 break;
                             case R.id.nav_add_list:
                                 Snackbar.make(drawerLayout, "添加清单", Snackbar.LENGTH_SHORT).show();
@@ -148,6 +137,12 @@ public class MainActivity extends AppCompatActivity {
         clearNavigationSelected();
     }
 
+    private void initDB() {
+        if(new PlanListDao(getContext()).getPlanListAll().size() <= 0) {
+            new PlanListDao(getContext()).add(new PlanList("default", 0, 0));
+        }
+    }
+
     public void setFragment(FragmentData data) {
         setFragment(data.getFragment(), data.getTitle(), data.getMenuItem());
     }
@@ -167,24 +162,7 @@ public class MainActivity extends AppCompatActivity {
 
         setFragmentManager();
 
-        addNewFragment(mainFragment, "今日任务", navigationView.getMenu().getItem(0));
-
-        Intent intent = new Intent(getContext(), BroadcastReceiver.class);
-        PendingIntent sender = PendingIntent.getBroadcast(getContext(),
-                0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-
-        // Schedule the alarm!
-        AlarmManager am = (AlarmManager) getContext()
-                .getSystemService(Context.ALARM_SERVICE);
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 21);
-        calendar.set(Calendar.MINUTE, 30);
-        calendar.set(Calendar.SECOND, 10);
-        calendar.set(Calendar.MILLISECOND, 0);
-
-        am.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
-                Utils.INTERVAL, sender);
+        addNewFragment(mainFragment, "今日计划", navigationView.getMenu().getItem(0));
     }
 
     public void addNewFragment(Fragment fragment, String title, MenuItem menuItem) {
