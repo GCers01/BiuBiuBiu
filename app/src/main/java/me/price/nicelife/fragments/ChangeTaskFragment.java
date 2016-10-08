@@ -56,10 +56,7 @@ public class ChangeTaskFragment extends BaseFragment {
                     String content = edtContent.getText().toString();
                     String ddl = limitedDate.getText().toString();
                     int priority = Integer.parseInt(prioritys.getText().toString());
-//                    PlanList planList = null;
-//                    if(planList == null) {
-//                        planList = new PlanListDao(getContext()).getByName("default").get(0);
-//                    }
+
                     plan.setTitle(title);
                     plan.setContent(content);
                     plan.setStart_time(Utils.string2Date(ddl));
@@ -74,7 +71,7 @@ public class ChangeTaskFragment extends BaseFragment {
         view.findViewById(R.id.btn_clr).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                awesomeValidation.clear();
+                ((MainActivity)myActivity).backFragment();
             }
         });
     }

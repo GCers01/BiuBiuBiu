@@ -12,18 +12,20 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import me.price.nicelife.bean.Alarm;
+import me.price.nicelife.bean.CountDown;
 import me.price.nicelife.bean.Plan;
 import me.price.nicelife.bean.PlanList;
 
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper
 {
-    private static final String TABLE_NAME = "fuckfuck.db";
+    private static final String TABLE_NAME = "fuck.db";
 
     private Map<String, Dao> daos = new HashMap<String, Dao>();
 
     private DatabaseHelper(Context context)
     {
-        super(context, TABLE_NAME, null, 7);//版本号
+        super(context, TABLE_NAME, null, 2);//版本号
     }
 
     @Override
@@ -34,6 +36,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper
         {
             TableUtils.createTable(connectionSource, PlanList.class);
             TableUtils.createTable(connectionSource, Plan.class);
+            TableUtils.createTable(connectionSource, CountDown.class);
+            TableUtils.createTable(connectionSource, Alarm.class);
         } catch (SQLException e)
         {
             e.printStackTrace();
@@ -48,6 +52,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper
         {
             TableUtils.dropTable(connectionSource, PlanList.class, true);
             TableUtils.dropTable(connectionSource, Plan.class, true);
+            TableUtils.dropTable(connectionSource, CountDown.class, true);
+            TableUtils.dropTable(connectionSource, Alarm.class, true);
             onCreate(database, connectionSource);
         } catch (SQLException e)
         {

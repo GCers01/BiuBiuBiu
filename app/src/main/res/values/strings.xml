@@ -15,6 +15,8 @@
     <string name="edt_content">Content</string>
     <string name="edt_title">Title</string>
     <string name="edt_priority">Priority</string>
+    <string name="edt_username">Username</string>
+    <string name="edt_password">Password</string>
     <string name="btn_done">Submit</string>
     <string name="btn_clr">Clear</string>
     <string name="err_userid">Letters, numbers, underscores or hyphens</string>
@@ -28,6 +30,8 @@
     <string name="err_title">Title please</string>
     <string name="err_content">Content please</string>
     <string name="err_priority">Priority please</string>
+    <string name="err_username">Username please</string>
+    <string name="err_password">Password please</string>
     <string name="mon">周一</string>
     <string name="tue">周二</string>
     <string name="wed">周三</string>

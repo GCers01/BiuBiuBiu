@@ -18,56 +18,20 @@
             android:orientation="vertical">
 
             <EditText
-                android:id="@+id/edt_title"
+                android:id="@+id/edt_username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:singleLine="true"
-                android:hint="@string/edt_title"/>
+                android:hint="@string/edt_username"/>
 
             <EditText
-                android:id="@+id/edt_content"
+                android:id="@+id/edt_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:singleLine="true"
-                android:hint="@string/edt_content"/>
-
-            <EditText
-                android:id="@+id/edt_priority"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:singleLine="true"
-                android:hint="@string/edt_priority"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:text="结束时间"
-                    android:layout_weight="2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-                <me.price.nicelife.views.EditTextWithDate
-                    android:id="@+id/limitedDate"
-                    android:layout_weight="5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="8dp"
-                    android:paddingLeft="8dp"
-                    android:hint="请点击右侧日历选择"/>
-
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/add_alarm"
-                android:text="点击添加闹钟提醒"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:hint="@string/edt_password"/>
 
         </LinearLayout>
 
@@ -82,15 +46,15 @@
         android:layout_weight="1">
 
         <Button
-            android:text="清空"
-            android:id="@+id/btn_clr"
+            android:text="返回"
+            android:id="@+id/btn_regester"
             android:layout_width="wrap_content"
             android:layout_height="75dp"
             android:layout_weight="1"/>
 
         <Button
-            android:text="创建"
-            android:id="@+id/btn_done"
+            android:text="注册"
+            android:id="@+id/btn_login"
             android:layout_width="wrap_content"
             android:layout_height="75dp"
             android:layout_weight="1"/>

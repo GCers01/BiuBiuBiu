@@ -10,6 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Header"
+        android:id="@+id/header"
         android:textSize="120px"
         android:paddingBottom="20dp"
         android:paddingTop="20dp"/>

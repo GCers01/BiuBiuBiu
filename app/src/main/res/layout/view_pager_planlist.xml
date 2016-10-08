@@ -1,0 +1,17 @@
+<com.mylhyl.crlayout.SwipeRefreshRecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:crl="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/planListSwipeRefresh"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    crl:load_animator="true">
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/plan_list_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_add" />
+
+</com.mylhyl.crlayout.SwipeRefreshRecyclerView>

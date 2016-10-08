@@ -40,6 +40,11 @@ public class CreateAlarmFragment extends Fragment implements View.OnClickListene
     private int ring;
     private String title;
     View view;
+    private int alarmId = -1;
+
+    public int getAlarmId() {
+        return alarmId;
+    }
 
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
@@ -121,23 +126,21 @@ public class CreateAlarmFragment extends Fragment implements View.OnClickListene
             String[] times = time.split(":");
             if (cycle == 0) {//是每天的闹钟
                 AlarmManagerUtil.setAlarm(getContext(), 0, Integer.parseInt(times[0]), Integer.parseInt
-                        (times[1]), 0, 0, title, ring);
+                        (times[1]), alarmId, 0, title, ring);
             } if(cycle == -1){//是只响一次的闹钟
                 AlarmManagerUtil.setAlarm(getContext(), 1, Integer.parseInt(times[0]), Integer.parseInt
-                        (times[1]), 0, 0, title, ring);
+                        (times[1]), alarmId, 0, title, ring);
             }else {//多选，周几的闹钟
                 String weeksStr = parseRepeat(cycle, 1);
                 String[] weeks = weeksStr.split(",");
-                for (int i = 0; i < weeks.length; i++) {
+                for (int i = 0; i < weeks.length; i++)
                     AlarmManagerUtil.setAlarm(getContext(), 2, Integer.parseInt(times[0]), Integer
-                            .parseInt(times[1]), i, Integer.parseInt(weeks[i]), title, ring);
+                            .parseInt(times[1]), alarmId + i, Integer.parseInt(weeks[i]), title, ring);
                 }
             }
-            Toast.makeText(getContext(), "闹钟设置成功", Toast.LENGTH_LONG).show();
-            AlarmManager.add(title);
-            ((MainActivity) getActivity()).backFragment();
-        }
-
+        Toast.makeText(getContext(), "闹钟设置成功", Toast.LENGTH_LONG).show();
+        AlarmManager.add(title);
+        ((MainActivity) getActivity()).backFragment();
     }
 
 

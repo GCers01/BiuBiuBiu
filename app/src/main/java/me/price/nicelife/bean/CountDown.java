@@ -5,24 +5,22 @@ import com.j256.ormlite.table.DatabaseTable;
 
 import java.util.Date;
 
-import me.price.nicelife.utils.Utils;
 
-@DatabaseTable(tableName = "tp_plan")
-public class Plan {
+@DatabaseTable(tableName = "tp_count_down")
+public class CountDown {
     @DatabaseField(generatedId = true)
     private int id;
     @DatabaseField(columnName = "title")
     private String title;
     @DatabaseField(columnName = "content")
     private String content;
-    @DatabaseField(columnName = "priority")
-    private int priority;
-    @DatabaseField(columnName = "state")
-    private int state;
     @DatabaseField(columnName = "start_time")
     private Date start_time;
-    @DatabaseField(canBeNull = true, foreign = true, columnName = "plan_list_id")
-    private PlanList planList;
+    @DatabaseField(columnName = "end_time")
+    private Date end_time;
+
+    @DatabaseField(canBeNull = true, foreign = true, columnName = "alarm")
+    private Alarm alarm;
 
     @DatabaseField(columnName = "synchronization")
     private int synchronization;//1 已经同步 0 还没有同步
@@ -31,22 +29,22 @@ public class Plan {
     @DatabaseField(columnName = "web_db_id")
     private int web_db_id;
 
-
-    public Plan(String title, String content, PlanList planList, int state,int priority, Date start_time, int synchronization,int db_state) {
+    public CountDown(String title, String content, Date start_time, Date end_time, Alarm alarm, int synchronization,int db_state) {
         this.title =title;
         this.content = content;
-        this.priority = priority;
-        this.state = state;
+        this.end_time = end_time;
         this.start_time = start_time;
-        this.planList = planList;
+
         this.synchronization = synchronization;
         this.db_state = db_state;
     }
-    public Plan(){
+    public CountDown(){
 
     }
-    public static Plan newInstance(String title, String content, int priority, Date start_time, PlanList planList) {
-        return new Plan(title, content, planList, Utils.STATE_TODO, priority, start_time , Utils.IS_SYN, Utils.STATE_ADD);
+
+    public static CountDown newInstancer(String title, String content, Date end_time, Alarm alarm) {
+
+        return new CountDown(title, content, new Date(), end_time, alarm, 0, 0);
     }
 
     public void setWeb_db_id(int web_db_id) {
@@ -57,28 +55,20 @@ public class Plan {
         return web_db_id;
     }
 
+    public void setAlarm(Alarm alarm) {
+        this.alarm = alarm;
+    }
+
+    public Alarm getAlarm() {
+        return alarm;
+    }
+
     public int getId() {
         return id;
     }
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public int getPriority() {
-        return priority;
-    }
-
-    public void setPriority(int priority) {
-        this.priority = priority;
-    }
-
-    public int getState() {
-        return state;
-    }
-
-    public void setState(int state) {
-        this.state = state;
     }
 
     public String getTitle() {
@@ -88,20 +78,13 @@ public class Plan {
     public void setTitle(String title) {
         this.title = title;
     }
+
     public String getContent() {
         return content;
     }
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    public PlanList getPlanList() {
-        return planList;
-    }
-
-    public void setPlanList(PlanList planList) {
-        this.planList = planList;
     }
 
     public Date getStart_time() {
@@ -128,12 +111,19 @@ public class Plan {
         this.synchronization = synchronization;
     }
 
+    public void setEnd_time(Date end_time) {
+        this.end_time = end_time;
+    }
+
+    public Date getEnd_time() {
+        return end_time;
+    }
+
     @Override
     public String toString() {
         return  "ID: "+id+
                 "\ntitle: "+title+"     content: "+content+
-                "\nstate: " + state + " priority: " + priority+
-                "\nstart_time: "+ start_time+ "    PlanList: "+planList+
+                "\nstart_time: "+ start_time+ "    end_time: "+end_time+
                 "\ntongbu: "+ this.synchronization +  "    dbState: " + db_state + "\n";
     }
 }

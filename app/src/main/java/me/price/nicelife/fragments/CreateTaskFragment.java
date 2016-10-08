@@ -14,9 +14,7 @@ import com.basgeekball.awesomevalidation.ValidationStyle;
 import me.price.nicelife.MainActivity;
 import me.price.nicelife.R;
 import me.price.nicelife.bean.Plan;
-import me.price.nicelife.bean.PlanList;
 import me.price.nicelife.db.PlanDao;
-import me.price.nicelife.db.PlanListDao;
 import me.price.nicelife.utils.Utils;
 
 /**
@@ -26,6 +24,7 @@ public class CreateTaskFragment extends BaseFragment {
 
     View view;
     Activity myActivity;
+    int alarmId;
 
     AwesomeValidation awesomeValidation;
 
@@ -40,6 +39,15 @@ public class CreateTaskFragment extends BaseFragment {
         awesomeValidation.addValidation(getActivity(),R.id.edt_priority, "([\\s\\S]*)", R.string.err_priority);
         awesomeValidation.addValidation(getActivity(),R.id.limitedDate,"([\\s\\S]*)" , R.string.err_year);
 
+        view.findViewById(R.id.add_alarm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CreateAlarmFragment alarmFragment = CreateAlarmFragment.newInstance("新建闹钟提醒");
+                ((MainActivity) getActivity()).addNewFragment(alarmFragment, "新建闹钟提醒");
+                alarmId = alarmFragment.getAlarmId();
+            }
+        });
+
         view.findViewById(R.id.btn_done).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -52,11 +60,7 @@ public class CreateTaskFragment extends BaseFragment {
                     String ddl = limitedDate.getText().toString();
                     EditText prioritys = (EditText) view.findViewById(R.id.edt_priority);
                     int priority = Integer.parseInt(prioritys.getText().toString());
-                    PlanList planList = null;
-                    if(planList == null) {
-                        planList = new PlanListDao(getContext()).getByName("default").get(0);
-                    }
-                    new PlanDao(getContext()).add(Plan.newInstance(title, content, priority, Utils.string2Date(ddl), planList));
+                    new PlanDao(getContext()).add(Plan.newInstance(title, content, priority, Utils.string2Date(ddl), Utils.nowPlanList));
                     closeKeyboard();
                     ((MainActivity)myActivity).backFragment();
                 }

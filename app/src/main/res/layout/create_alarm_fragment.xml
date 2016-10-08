@@ -95,7 +95,6 @@
         android:layout_height="1dp"
         android:background="@color/line_and_outline_grey"/>
 
-
     <Button
         android:id="@+id/set_btn"
         android:layout_width="wrap_content"

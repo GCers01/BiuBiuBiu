@@ -15,54 +15,48 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import me.price.nicelife.bean.Plan;
-import me.price.nicelife.bean.PlanList;
+import me.price.nicelife.bean.Alarm;
+import me.price.nicelife.bean.CountDown;
 import me.price.nicelife.okhttp.OkHttpUtil;
 import me.price.nicelife.utils.Utils;
 
 
-/**
- * Created by zihe on 2016/10/6.
- */
-public class PlanDao {
-    private Dao<Plan, Integer> planDaoOpe;
+public class CountDownDao {
+    private Dao<CountDown, Integer> countDownDaoOpe;
     private DatabaseHelper helper;
 
     @SuppressWarnings("unchecked")
-    public PlanDao(Context context)
+    public CountDownDao(Context context)
     {
         try
         {
             helper = DatabaseHelper.getHelper(context);
-            planDaoOpe = helper.getDao(Plan.class);
+            countDownDaoOpe = helper.getDao(CountDown.class);
         } catch (SQLException e)
         {
             e.printStackTrace();
         }
     }
 
-
     //add*******************************************************************
-    public void addWebAndLocal(Plan plan) {
-        int syn;
-        plan.setSynchronization(Utils.NOT_SYN);
-        plan.setDb_state(Utils.STATE_ADD);
-        this.add(plan);
+    public void addWebAndLocal(CountDown countDown) {
+        countDown.setSynchronization(Utils.NOT_SYN);
+        countDown.setDb_state(Utils.STATE_ADD);
+        this.add(countDown);
         if (Utils.isConnect) {
-            this.addWeb(plan);
+            this.addWeb(countDown);
         }
     }
 
-    public void addWeb(final Plan plan){
+    public void addWeb(final CountDown countDown){
         RequestBody formBody = new FormEncodingBuilder()
-                .add("title",plan.getTitle())
-                .add("content",plan.getContent())
-                .add("state",""+plan.getState())
-                .add("start_time","2016-02-05")
-                .add("plan_list_id",plan.getPlanList().getId()+"")
+                .add("title",countDown.getTitle())
+                .add("content",countDown.getContent())
+                .add("en_time","2016-02-06")
+                .add("start_time", "2016-02-05")
                 .build();
         final Request request = new Request.Builder()
-                .url(Utils.webUrl + "add_plan")
+                .url(Utils.webUrl + "add_count_down")
                 .post(formBody)
                 .build();
 
@@ -80,49 +74,35 @@ public class PlanDao {
                     if (files.get("result").equals("true")) {
 
                         int plan_list_id = Integer.parseInt(files.get("plan_id"));
-                        plan.setWeb_db_id(plan_list_id);
-                        plan.setSynchronization(Utils.IS_SYN);
-                        update(plan);
+                        countDown.setWeb_db_id(plan_list_id);
+                        countDown.setSynchronization(Utils.IS_SYN);
+                        update(countDown);
                     }
                 }
             }
         });
     }
-
-    public void add(Plan plan)
+    public void add(CountDown countDown)
     {
         try
         {
-            planDaoOpe.create(plan);
+            countDown.setDb_state(Utils.STATE_ADD);
+            countDownDaoOpe.create(countDown);
         } catch (SQLException e)
         {
             e.printStackTrace();
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public Plan getPlanWithPlanList(int id)
+
+
+
+    public CountDown get(int id)
     {
-        Plan plan  = null;
+        CountDown plan  = null;
         try
         {
-            plan = planDaoOpe.queryForId(id);
-            helper.getDao(PlanList.class).refresh(plan.getPlanList());
-
-        } catch (SQLException e)
-        {
-            e.printStackTrace();
-        }
-        return plan;
-    }
-
-
-    public Plan get(int id)
-    {
-        Plan plan  = null;
-        try
-        {
-            plan = planDaoOpe.queryForId(id);
+            plan = countDownDaoOpe.queryForId(id);
 
         } catch (SQLException e)
         {
@@ -132,91 +112,102 @@ public class PlanDao {
     }
 
 
-    public List<Plan> listByPlanListId(int planListId)
-    {
+    public CountDown getWithAlarm(int id){
+        CountDown plan  = null;
         try
         {
-            return planDaoOpe.queryBuilder().where().eq("plan_list_id", planListId)
-                    .query();
+            plan = countDownDaoOpe.queryForId(id);
+            helper.getDao(Alarm.class).refresh(plan.getAlarm());
+
         } catch (SQLException e)
         {
             e.printStackTrace();
         }
-        return new ArrayList<Plan>();
+        return plan;
     }
 
-    //*******update*****************************************
-    public void update(Plan plan){
+    public List<CountDown> getAll()
+    {
+        List<CountDown> reusltList = new ArrayList<>();
+        try {
+            reusltList =  countDownDaoOpe.queryBuilder().where().ne("db_state",Utils.STATE_DELETE).query();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return reusltList;
+    }
+
+    //**update*******************************************************************
+    public void updateWebAndLocal(CountDown countDown) {
+        countDown.setSynchronization(Utils.NOT_SYN);
+        countDown.setDb_state(Utils.STATE_MODIFY);
+        this.update(countDown);
+        if (Utils.isConnect) {
+            this.updateWeb(countDown);
+        }
+    }
+
+    public void updateWeb(final CountDown countDown){
+        RequestBody formBody = new FormEncodingBuilder()
+                .add("count_down_id",countDown.getWeb_db_id()+"")
+                .add("title", countDown.getTitle())
+                .add("content",countDown.getContent())
+                .add("en_time","2016-02-06")
+                .add("start_time", "2016-02-05")
+                .build();
+        final Request request = new Request.Builder()
+                .url(Utils.webUrl + "modify_count_down")
+                .post(formBody)
+                .build();
+
+        OkHttpUtil.enqueue(request, new Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String body = response.body().string();
+                    HashMap<String, String> files = Utils.toHashMap(body);
+                    if (files.get("result").equals("true")) {
+                        countDown.setSynchronization(Utils.IS_SYN);
+                        update(countDown);
+                    }
+                }
+            }
+        });
+    }
+    public void update(CountDown countDown){
         try{
-            planDaoOpe.update(plan);
+            countDown.setDb_state(Utils.STATE_MODIFY);
+            countDownDaoOpe.update(countDown);
         }
         catch (SQLException e){
             e.printStackTrace();
         }
     }
-    public void updateWebAndLocal(Plan plan) {
-        int syn;
-        plan.setSynchronization(Utils.NOT_SYN);
-        plan.setDb_state(Utils.STATE_ADD);
-        this.update(plan);
-        if (Utils.isConnect) {
-            this.updateWeb(plan);
-        }
-    }
-
-    public void updateWeb(final Plan plan){
-        RequestBody formBody = new FormEncodingBuilder()
-                .add("id",plan.getWeb_db_id()+"")
-                .add("title",plan.getTitle())
-                .add("content",plan.getContent())
-                .add("state",""+plan.getState())
-                .add("start_time","2016-02-05")
-                .add("plan_list_id",plan.getPlanList().getId()+"")
-                .build();
-        final Request request = new Request.Builder()
-                .url(Utils.webUrl + "modify_plan")
-                .post(formBody)
-                .build();
-
-        OkHttpUtil.enqueue(request, new Callback() {
-            @Override
-            public void onFailure(Request request, IOException e) {
-                e.printStackTrace();
-            }
-
-            @Override
-            public void onResponse(Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    String body = response.body().string();
-                    HashMap<String, String> files = Utils.toHashMap(body);
-                    if (files.get("result").equals("true")) {
-                        plan.setSynchronization(Utils.IS_SYN);
-                        update(plan);
-                    }
-                }
-            }
-        });
-    }
 
     //*******delete*****************************************
-    public void delete(Plan plan){
-        plan.setDb_state(Utils.STATE_DELETE);
-        plan.setSynchronization(Utils.NOT_SYN);
-        update(plan);
+    public void delete(CountDown countDown){
+        countDown.setDb_state(Utils.STATE_DELETE);
+        countDown.setSynchronization(Utils.NOT_SYN);
+        update(countDown);
     }
-    public void deleteWebAndLocal(Plan plan) {
-        this.delete(plan);
+    public void deleteWebAndLocal(CountDown countDown) {
+        this.delete(countDown);
         if (Utils.isConnect) {
-            this.deleteeWeb(plan);
+            this.deleteWeb(countDown);
         }
     }
 
-    public void deleteeWeb(final Plan plan){
+    public void deleteWeb(final CountDown countDown){
         RequestBody formBody = new FormEncodingBuilder()
-                .add("id", plan.getWeb_db_id()+"")
+                .add("id", countDown.getWeb_db_id()+"")
                 .build();
         final Request request = new Request.Builder()
-                .url(Utils.webUrl + "delete_plan")
+                .url(Utils.webUrl + "delete_count_down")
                 .post(formBody)
                 .build();
 
@@ -232,8 +223,8 @@ public class PlanDao {
                     String body = response.body().string();
                     HashMap<String, String> files = Utils.toHashMap(body);
                     if (files.get("result").equals("true")) {
-                        plan.setSynchronization(Utils.IS_SYN);
-                        update(plan);
+                        countDown.setSynchronization(Utils.IS_SYN);
+                        update(countDown);
                     }
                 }
             }

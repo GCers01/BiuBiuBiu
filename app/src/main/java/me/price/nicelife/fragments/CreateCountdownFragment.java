@@ -13,8 +13,9 @@ import com.basgeekball.awesomevalidation.ValidationStyle;
 
 import me.price.nicelife.MainActivity;
 import me.price.nicelife.R;
-import me.price.nicelife.datas.datamanager.CountdownAll;
-import me.price.nicelife.datas.datastruct.Countdown;
+import me.price.nicelife.bean.CountDown;
+import me.price.nicelife.db.CountDownDao;
+import me.price.nicelife.utils.Utils;
 
 /**
  * Created by jx-pc on 2016/10/4.
@@ -46,7 +47,8 @@ public class CreateCountdownFragment extends BaseFragment {
                     String content = edtContent.getText().toString();
                     EditText limitedDate = (EditText) view.findViewById(R.id.limitedDate);
                     String ddl = limitedDate.getText().toString();
-                    CountdownAll.add(Countdown.newInstance(title, content, ddl));
+                    CountDown countDown = CountDown.newInstancer(title, content, Utils.string2Date(ddl), null);
+                    new CountDownDao(getContext()).add(countDown);
                     closeKeyboard();
                     ((MainActivity)myActivity).backFragment();
                 }

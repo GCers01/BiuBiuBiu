@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
@@ -14,16 +13,23 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import me.price.nicelife.bean.PlanList;
 import me.price.nicelife.db.PlanListDao;
 import me.price.nicelife.fragments.AlarmListFragment;
 import me.price.nicelife.fragments.CalendarFragment;
 import me.price.nicelife.fragments.CountdownFragment;
+import me.price.nicelife.fragments.CreatePlanListFragment;
+import me.price.nicelife.fragments.LoginFragment;
 import me.price.nicelife.fragments.MainFragment;
+import me.price.nicelife.fragments.ManagePlanListFragment;
+import me.price.nicelife.utils.Utils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -72,9 +78,45 @@ public class MainActivity extends AppCompatActivity {
         calendarFragment = CalendarFragment.newInstance();
     }
 
-    private void setNavigationView() {
+    public void resetNavigationView(final PlanList planList) {
+        Menu menu = navigationView.getMenu();
+        final MenuItem menuItem = menu.add(0, menu.size(), 0, planList.getTitle()).setIcon(R.drawable.ic_add);
+        menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                Utils.nowPlanList = planList;
+                ((MainFragment) mainFragment).refreshPlan();
+                setSelected(menuItem);
+                return false;
+            }
+        });
+    }
+
+    public NavigationView getNavigationView() {
+        return navigationView;
+    }
+
+    public void setNavigationView() {
 
         navigationView = (NavigationView) findViewById(R.id.navigtion_view);
+
+        Menu menu = navigationView.getMenu();
+
+        List<PlanList> planLists = new PlanListDao(getContext()).getPlanListAll();
+        for(int i=0;i<planLists.size();i++) {
+            final PlanList planList = planLists.get(i);
+            if(planList.getTitle().equals("default")) continue;
+            final MenuItem menuItem = menu.add(0, planList.getId(), 0, planList.getTitle()).setIcon(R.drawable.ic_add);
+            menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    Utils.nowPlanList = planList;
+                    ((MainFragment) mainFragment).refreshPlan();
+                    setSelected(menuItem);
+                    return false;
+                }
+            });
+        }
 
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
@@ -86,6 +128,8 @@ public class MainActivity extends AppCompatActivity {
                         switch (id) {
 
                             case R.id.nav_all_plan:
+                                Utils.nowPlanList = new PlanListDao(getContext()).getByName("default").get(0);
+                                ((MainFragment) mainFragment).refreshPlan();
                                 addNewFragment(mainFragment, "今日计划", menuItem);
                                 break;
                             case R.id.nav_countdown:
@@ -95,10 +139,10 @@ public class MainActivity extends AppCompatActivity {
                                 addNewFragment(AlarmListFragment.newInstance(), "闹钟提醒", menuItem);
                                 break;
                             case R.id.nav_add_list:
-                                Snackbar.make(drawerLayout, "添加清单", Snackbar.LENGTH_SHORT).show();
+                                addNewFragment(CreatePlanListFragment.newInstance(), "添加清单");
                                 break;
                             case R.id.nav_list_manager:
-                                Snackbar.make(drawerLayout, "管理清单", Snackbar.LENGTH_SHORT).show();
+                                addNewFragment(ManagePlanListFragment.newInstance(), "管理清单");
                                 break;
                             default:;
                         }
@@ -162,6 +206,16 @@ public class MainActivity extends AppCompatActivity {
 
         setFragmentManager();
 
+        navigationView.getHeaderView(0).findViewById(R.id.header).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addNewFragment(LoginFragment.newInstance(), "登录");
+                drawerLayout.closeDrawers();
+            }
+        });
+
+        Utils.nowPlanList = new PlanListDao(getContext()).getByName("default").get(0);
+
         addNewFragment(mainFragment, "今日计划", navigationView.getMenu().getItem(0));
     }
 
@@ -181,6 +235,14 @@ public class MainActivity extends AppCompatActivity {
             setFragment(fragmentDataList.get(size - 2));
             fragmentDataList.remove(size - 1);
         }
+    }
+
+    public Fragment getBackFragment() {
+        int size = fragmentDataList.size();
+        if(size > 1) {
+            return fragmentDataList.get(size - 2).fragment;
+        }
+        return null;
     }
 
     @Override

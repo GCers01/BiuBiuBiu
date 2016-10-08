@@ -3,20 +3,22 @@ package me.price.nicelife.bean;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
+import me.price.nicelife.utils.Utils;
+
 /**
  * Created by zihe on 2016/10/6.
  */
 
-@DatabaseTable(tableName = "planList")
+@DatabaseTable(tableName = "tp_plan_list")
 public class PlanList {
     @DatabaseField(generatedId = true)
     private int id;
     @DatabaseField(columnName = "title")
     private String title;
     @DatabaseField(columnName = "synchronization")
-    private int synchronization;//1 已经同步 0 还没有同步
+    private int synchronization;
     @DatabaseField(columnName = "db_state")
-    private int db_state;//0 删除 1修改 2插入
+    private int db_state;
     @DatabaseField(columnName = "web_db_id")
     private int web_db_id;
 
@@ -33,6 +35,10 @@ public class PlanList {
         this.synchronization = synchronization;
         this.db_state = db_state;
         this.web_db_id = web_db_id;
+    }
+
+    public static PlanList newInstance(String title) {
+        return new PlanList(title, Utils.IS_SYN, Utils.STATE_ADD);
     }
 
     public String getTitle(){
@@ -64,6 +70,14 @@ public class PlanList {
 
     public int getSynchronization() {
         return synchronization;
+    }
+
+    public void setWeb_db_id(int web_db_id) {
+        this.web_db_id = web_db_id;
+    }
+
+    public int getWeb_db_id() {
+        return web_db_id;
     }
 
     @Override

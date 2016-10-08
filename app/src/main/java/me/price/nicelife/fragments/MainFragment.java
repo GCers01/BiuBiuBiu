@@ -26,10 +26,11 @@ import java.util.List;
 
 import me.price.nicelife.MainActivity;
 import me.price.nicelife.R;
+import me.price.nicelife.bean.CountDown;
 import me.price.nicelife.bean.Plan;
-import me.price.nicelife.datas.datamanager.CountdownAll;
+import me.price.nicelife.db.CountDownDao;
 import me.price.nicelife.db.PlanDao;
-import me.price.nicelife.db.PlanListDao;
+import me.price.nicelife.utils.Utils;
 
 /**
  * Created by jx-pc on 2016/9/23.
@@ -48,10 +49,7 @@ public class MainFragment extends BaseFragment {
 
     SwipeRefreshRecyclerView countdownRecyclerView;
     CountdownAdapter countdownAdapter;
-    List<String> objects = new ArrayList<>();
-    private int index = 0;
-    private int footerIndex = 10;
-
+    List<CountDown> countdowns;
 
     SwipeRefreshRecyclerView taskRecyclerView;
     TaskAdapter taskAdapter;
@@ -87,6 +85,7 @@ public class MainFragment extends BaseFragment {
                     case 0:
                         pageView = LayoutInflater.from(
                                 getContext()).inflate(R.layout.view_pager_task, null, false);
+                        taskAdapter = new TaskAdapter();
                         refreshPlan();
                         taskRecyclerView = (SwipeRefreshRecyclerView)pageView.findViewById(R.id.taskSwipeRefresh);
                         taskRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
@@ -104,7 +103,7 @@ public class MainFragment extends BaseFragment {
                                 taskRecyclerView.postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        CountdownAll.refresh();
+                                        refreshPlan();
                                         taskAdapter.notifyDataSetChanged();
                                         taskRecyclerView.setRefreshing(false);
                                     }
@@ -114,6 +113,7 @@ public class MainFragment extends BaseFragment {
                         taskAdapter = new TaskAdapter();
                         taskRecyclerView.setAdapter(taskAdapter);
                         taskRecyclerView.setEmptyText("数据又没有了!");
+                        refreshPlan();
 
                         FloatingActionButton addTaskButton = (FloatingActionButton) pageView.findViewById(R.id.create_task_fab);
                         addTaskButton.setOnClickListener(new View.OnClickListener() {
@@ -126,17 +126,13 @@ public class MainFragment extends BaseFragment {
                     case 1:
                         pageView = LayoutInflater.from(
                                 getContext()).inflate(R.layout.view_pager_countdown, null, false);
+                        refreshCountdown();
                         countdownRecyclerView = (SwipeRefreshRecyclerView)pageView.findViewById(R.id.countdownSwipeRefresh);
                         countdownRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
                         countdownRecyclerView.setOnListLoadListener(new SwipeRefreshAdapterView.OnListLoadListener() {
                             @Override
                             public void onListLoad() {
-//                                ++index;
-//                                int count = footerIndex + 5;
-//                                for (int i = footerIndex; i < count; i++) {
-//                                    objects.add("上拉 = " + i);
-//                                }
-//                                footerIndex = count;
+                                refreshPlan();
                                 countdownAdapter.notifyDataSetChanged();
                                 countdownRecyclerView.setLoading(false);
                             }
@@ -147,7 +143,7 @@ public class MainFragment extends BaseFragment {
                                 countdownRecyclerView.postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        CountdownAll.refresh();
+                                        refreshCountdown();
                                         countdownAdapter.notifyDataSetChanged();
                                         countdownRecyclerView.setRefreshing(false);
                                     }
@@ -244,9 +240,13 @@ public class MainFragment extends BaseFragment {
         navigationTabBar.setBehaviorEnabled(true);
     }
 
-    private void refreshPlan() {
-        plans = new PlanDao(getContext()).listByPlanListId(new PlanListDao(getContext()).getByName("default").get(0).getId());
-        plans = new PlanDao(getContext()).getPlanAll();
+    public void refreshPlan() {
+        plans = new PlanDao(getContext()).listByPlanListId(Utils.nowPlanList.getId());
+        taskAdapter.notifyDataSetChanged();
+    }
+
+    public void refreshCountdown() {
+        countdowns = new CountDownDao(getContext()).getAll();
     }
 
     private void setListViewPager(View pageView) {
@@ -290,11 +290,9 @@ public class MainFragment extends BaseFragment {
 
     class CountdownAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-        private int active = -1;
-
         @Override
         public int getItemCount() {
-            return CountdownAll.getSize();
+            return countdowns.size();
         }
 
         @Override
@@ -308,16 +306,14 @@ public class MainFragment extends BaseFragment {
         @Override
         public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
 
+            final CountDown countdown = countdowns.get(position);
             final TextView title = ((CountdownViewHolder) holder).title;
-            title.setText(CountdownAll.get(position).getTitle());
+            title.setText(countdown.getTitle());
             final TextView content = ((CountdownViewHolder) holder).content;
-            content.setText(CountdownAll.get(position).getContent());
+            content.setText(countdown.getContent());
             content.measure(View.MeasureSpec.getMode(0), 0);
             ((CountdownViewHolder) holder).height = content.getMeasuredHeight();
-            ((CountdownViewHolder) holder).id = CountdownAll.get(position).getId() - 1;
-            if(position != active) {
-                content.setHeight(0);
-            }
+            content.setHeight(0);
 
             title.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -335,8 +331,7 @@ public class MainFragment extends BaseFragment {
             ((CountdownViewHolder) holder).editButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    CountdownViewHolder h = ((CountdownViewHolder) holder);
-                    ((MainActivity)getActivity()).addNewFragment(ChangeCountdownFragment.newInstance(h.id), title.getText().toString());
+                    ((MainActivity)getActivity()).addNewFragment(ChangeCountdownFragment.newInstance(countdown), "倒计时详情");
                 }
             });
         }
@@ -346,7 +341,6 @@ public class MainFragment extends BaseFragment {
             TextView content;
             Button finishButton;
             Button editButton;
-            int id;
             int height;
 
             public CountdownViewHolder(View view) {
@@ -355,7 +349,6 @@ public class MainFragment extends BaseFragment {
                 content = (TextView) view.findViewById(R.id.contentdown_content);
                 finishButton = (Button) view.findViewById(R.id.finish_button);
                 editButton = (Button) view.findViewById(R.id.edit_button);
-                id = 0;
             }
         }
     }
@@ -385,7 +378,6 @@ public class MainFragment extends BaseFragment {
             title.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    TaskViewHolder h = ((TaskViewHolder) holder);
                     ((MainActivity) getActivity()).addNewFragment(ChangeTaskFragment.newInstance(plan), "计划详情");
                 }
             });
@@ -401,6 +393,4 @@ public class MainFragment extends BaseFragment {
             }
         }
     }
-
-
 }

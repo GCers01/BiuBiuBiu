@@ -13,8 +13,9 @@ import com.basgeekball.awesomevalidation.ValidationStyle;
 
 import me.price.nicelife.MainActivity;
 import me.price.nicelife.R;
-import me.price.nicelife.datas.datamanager.CountdownAll;
-import me.price.nicelife.datas.datastruct.Countdown;
+import me.price.nicelife.bean.CountDown;
+import me.price.nicelife.db.CountDownDao;
+import me.price.nicelife.utils.Utils;
 
 /**
  * Created by jx-pc on 2016/10/5.
@@ -24,13 +25,11 @@ public class ChangeCountdownFragment extends BaseFragment {
 
     View view;
     Activity myActivity;
-    int id;
+    CountDown countdown;
 
     EditText edtTitle;
     EditText edtContent;
     EditText limitedDate;
-
-    Countdown countdown;
 
     AwesomeValidation awesomeValidation;
 
@@ -38,14 +37,12 @@ public class ChangeCountdownFragment extends BaseFragment {
     public void onViewCreated(final View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        countdown = CountdownAll.get(id);
-
         edtTitle = (EditText) view.findViewById(R.id.edt_title);
         edtTitle.setText(countdown.getTitle());
         edtContent = (EditText) view.findViewById(R.id.edt_content);
         edtContent.setText(countdown.getContent());
         limitedDate = (EditText) view.findViewById(R.id.limitedDate);
-        limitedDate.setText(countdown.getDdl());
+        limitedDate.setText(Utils.date2String(countdown.getEnd_time()));
 
         awesomeValidation = new AwesomeValidation(ValidationStyle.BASIC);
         myActivity = getActivity();
@@ -58,10 +55,10 @@ public class ChangeCountdownFragment extends BaseFragment {
             @Override
             public void onClick(View v) {
                 if(awesomeValidation.validate()) {
-                    String title = edtTitle.getText().toString();
-                    String content = edtContent.getText().toString();
-                    String ddl = limitedDate.getText().toString();
-                    countdown.reset(title, content, ddl);
+                    countdown.setTitle(edtTitle.getText().toString());
+                    countdown.setContent(edtContent.getText().toString());
+                    countdown.setEnd_time(Utils.string2Date(limitedDate.getText().toString()));
+                    new CountDownDao(getContext()).update(countdown);
                     closeKeyboard();
                     ((MainActivity)myActivity).backFragment();
                 }
@@ -71,7 +68,7 @@ public class ChangeCountdownFragment extends BaseFragment {
         view.findViewById(R.id.btn_clr).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                awesomeValidation.clear();
+                ((MainActivity) getActivity()).backFragment();
             }
         });
     }
@@ -83,12 +80,12 @@ public class ChangeCountdownFragment extends BaseFragment {
         return view;
     }
 
-    public static ChangeCountdownFragment newInstance(int id) {
+    public static ChangeCountdownFragment newInstance(CountDown countdown) {
 
         ChangeCountdownFragment fragment = new ChangeCountdownFragment();
         Bundle args = new Bundle();
         fragment.setArguments(args);
-        fragment.id = id;
+        fragment.countdown = countdown;
         return  fragment;
     }
 }
