@@ -3,6 +3,7 @@ package me.price.nicelife.fragments;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,16 +59,18 @@ public class ChangeCountdownFragment extends BaseFragment {
                     countdown.setTitle(edtTitle.getText().toString());
                     countdown.setContent(edtContent.getText().toString());
                     countdown.setEnd_time(Utils.string2Date(limitedDate.getText().toString()));
-                    new CountDownDao(getContext()).update(countdown);
+                    new CountDownDao(getContext()).updateWebAndLocal(countdown);
                     closeKeyboard();
                     ((MainActivity)myActivity).backFragment();
                 }
             }
         });
 
-        view.findViewById(R.id.btn_clr).setOnClickListener(new View.OnClickListener() {
+        view.findViewById(R.id.btn_del).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                new CountDownDao(getContext()).deleteWebAndLocal(new CountDownDao(getContext()).get(countdown.getId()));
                 ((MainActivity) getActivity()).backFragment();
             }
         });
@@ -75,7 +78,7 @@ public class ChangeCountdownFragment extends BaseFragment {
 
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        view = inflater.inflate(R.layout.create_countdown_fragment, container, false);
+        view = inflater.inflate(R.layout.change_countdown_fragment, container, false);
 
         return view;
     }
@@ -86,6 +89,8 @@ public class ChangeCountdownFragment extends BaseFragment {
         Bundle args = new Bundle();
         fragment.setArguments(args);
         fragment.countdown = countdown;
+
+        Log.e("isssssd", countdown.toString());
         return  fragment;
     }
 }

@@ -1,6 +1,7 @@
 package me.price.nicelife.db;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
 import com.squareup.okhttp.Callback;
@@ -52,13 +53,15 @@ public class CountDownDao {
         RequestBody formBody = new FormEncodingBuilder()
                 .add("title",countDown.getTitle())
                 .add("content",countDown.getContent())
-                .add("en_time","2016-02-06")
+                .add("end_time","2016-02-06")
                 .add("start_time", "2016-02-05")
                 .build();
         final Request request = new Request.Builder()
                 .url(Utils.webUrl + "add_count_down")
                 .post(formBody)
                 .build();
+
+
 
         OkHttpUtil.enqueue(request, new Callback() {
             @Override
@@ -73,10 +76,15 @@ public class CountDownDao {
                     HashMap<String, String> files = Utils.toHashMap(body);
                     if (files.get("result").equals("true")) {
 
-                        int plan_list_id = Integer.parseInt(files.get("plan_id"));
+                        int plan_list_id = Integer.parseInt(files.get("count_down_id"));
                         countDown.setWeb_db_id(plan_list_id);
                         countDown.setSynchronization(Utils.IS_SYN);
                         update(countDown);
+
+
+                        Log.e("id", countDown.toString());
+
+                        int temp = 1;
                     }
                 }
             }
@@ -152,13 +160,14 @@ public class CountDownDao {
                 .add("count_down_id",countDown.getWeb_db_id()+"")
                 .add("title", countDown.getTitle())
                 .add("content",countDown.getContent())
-                .add("en_time","2016-02-06")
+                .add("end_time","2016-02-06")
                 .add("start_time", "2016-02-05")
                 .build();
         final Request request = new Request.Builder()
                 .url(Utils.webUrl + "modify_count_down")
                 .post(formBody)
                 .build();
+
 
         OkHttpUtil.enqueue(request, new Callback() {
             @Override
@@ -181,7 +190,7 @@ public class CountDownDao {
     }
     public void update(CountDown countDown){
         try{
-            countDown.setDb_state(Utils.STATE_MODIFY);
+
             countDownDaoOpe.update(countDown);
         }
         catch (SQLException e){
@@ -191,11 +200,19 @@ public class CountDownDao {
 
     //*******delete*****************************************
     public void delete(CountDown countDown){
+
         countDown.setDb_state(Utils.STATE_DELETE);
         countDown.setSynchronization(Utils.NOT_SYN);
-        update(countDown);
+        try {
+            countDownDaoOpe.update(countDown);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
     public void deleteWebAndLocal(CountDown countDown) {
+
+        Log.e("id", countDown.toString());
+
         this.delete(countDown);
         if (Utils.isConnect) {
             this.deleteWeb(countDown);
@@ -210,6 +227,8 @@ public class CountDownDao {
                 .url(Utils.webUrl + "delete_count_down")
                 .post(formBody)
                 .build();
+
+        Log.e("id", countDown.toString());
 
         OkHttpUtil.enqueue(request, new Callback() {
             @Override
@@ -231,6 +250,25 @@ public class CountDownDao {
         });
     }
 
+    //*同步到服务器
+    public void synToWeb(){
+        List<CountDown> countDowns = this.getAll();
+        for(CountDown countDown : countDowns){
+            if(countDown.getSynchronization()==Utils.NOT_SYN){
+                switch (countDown.getDb_state()){
+                    case Utils.STATE_ADD:
+                        addWeb(countDown);
+                        break;
+                    case Utils.STATE_MODIFY:
+                        updateWeb(countDown);
+                        break;
+                    case Utils.STATE_DELETE:
+                        deleteWeb(countDown);
+                        break;
+                }
+            }
+        }
+    }
 
 
 }

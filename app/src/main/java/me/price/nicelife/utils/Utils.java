@@ -18,7 +18,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import me.price.nicelife.bean.Alarm;
 import me.price.nicelife.bean.CountDown;
 import me.price.nicelife.bean.Plan;
 import me.price.nicelife.bean.PlanList;
@@ -42,6 +41,7 @@ public class Utils {
     public static final int STATE_FINISH = 1;
 
     public static PlanList nowPlanList;
+    public static String username;
 
     public static int testNum = 100;
 
@@ -123,9 +123,34 @@ public class Utils {
 
     }
     public static class DBJSON{
-        public PlanList planLists[];
+        public PlanList plan_lists[];
         public Plan plans[];
-        public Alarm alarm[];
-        public CountDown countDowns[];
+        public CountDown count_downs[];
+
+
+
+        public void setCountDowns(CountDown[] countDowns) {
+            this.count_downs = countDowns;
+        }
+
+        public CountDown[] getCountDowns() {
+            return count_downs;
+        }
+
+        public void setPlanLists(PlanList[] planLists) {
+            this.plan_lists = planLists;
+        }
+
+        public PlanList[] getPlanLists() {
+            return plan_lists;
+        }
+
+        public void setPlans(Plan[] plans) {
+            this.plans = plans;
+        }
+
+        public Plan[] getPlans() {
+            return plans;
+        }
     }
 }

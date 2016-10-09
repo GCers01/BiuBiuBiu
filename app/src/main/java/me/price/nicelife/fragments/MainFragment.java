@@ -2,6 +2,8 @@ package me.price.nicelife.fragments;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.PagerAdapter;
@@ -9,18 +11,26 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.gigamole.navigationtabbar.ntb.NavigationTabBar;
+import com.google.gson.Gson;
 import com.mylhyl.crlayout.SwipeRefreshAdapterView;
 import com.mylhyl.crlayout.SwipeRefreshRecyclerView;
+import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,8 +38,12 @@ import me.price.nicelife.MainActivity;
 import me.price.nicelife.R;
 import me.price.nicelife.bean.CountDown;
 import me.price.nicelife.bean.Plan;
+import me.price.nicelife.bean.PlanList;
 import me.price.nicelife.db.CountDownDao;
 import me.price.nicelife.db.PlanDao;
+import me.price.nicelife.db.PlanListDao;
+import me.price.nicelife.db.UserDao;
+import me.price.nicelife.okhttp.OkHttpUtil;
 import me.price.nicelife.utils.Utils;
 
 /**
@@ -54,6 +68,11 @@ public class MainFragment extends BaseFragment {
     SwipeRefreshRecyclerView taskRecyclerView;
     TaskAdapter taskAdapter;
     List<Plan> plans;
+
+    ImageView touxiang;
+    TextView username;
+
+    boolean isInit = false;
 
     private void initNavigationTabBar() {
         viewPager = (ViewPager) view.findViewById(R.id.vp_horizontal_ntb);
@@ -110,7 +129,6 @@ public class MainFragment extends BaseFragment {
                                 }, 1000);
                             }
                         });
-                        taskAdapter = new TaskAdapter();
                         taskRecyclerView.setAdapter(taskAdapter);
                         taskRecyclerView.setEmptyText("数据又没有了!");
                         refreshPlan();
@@ -126,6 +144,7 @@ public class MainFragment extends BaseFragment {
                     case 1:
                         pageView = LayoutInflater.from(
                                 getContext()).inflate(R.layout.view_pager_countdown, null, false);
+                        countdownAdapter = new CountdownAdapter();
                         refreshCountdown();
                         countdownRecyclerView = (SwipeRefreshRecyclerView)pageView.findViewById(R.id.countdownSwipeRefresh);
                         countdownRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
@@ -165,8 +184,105 @@ public class MainFragment extends BaseFragment {
                     case 2:
                         pageView = LayoutInflater.from(
                                 getContext()).inflate(R.layout.view_pager_mine, null, false);
-                        txtPage = (TextView) pageView.findViewById(R.id.txt_vp_item_page);
-                        txtPage.setText(String.format("Page #%d\nmine", position));
+                        touxiang = (ImageView) pageView.findViewById(R.id.touxiang);
+                        username = (TextView) pageView.findViewById(R.id.username);
+                        if(Utils.username == null) {
+                            username.setText("您还未登录！");
+                        }
+                        else {
+                            setInfo();
+                        }
+                        ImageView i_setting = (ImageView) pageView.findViewById(R.id.i_setting);
+                        i_setting.setImageResource(R.drawable.ic_settings);
+                        ImageView i_version = (ImageView) pageView.findViewById(R.id.i_version);
+                        i_version.setImageResource(R.drawable.ic_add);
+                        ImageView i_update = (ImageView) pageView.findViewById(R.id.i_update);
+                        i_update.setImageResource(R.drawable.ic_add);
+                        ImageView i_logout = (ImageView) pageView.findViewById(R.id.i_logout);
+                        i_logout.setImageResource(R.drawable.ic_add);
+                        ImageView i_right1 = (ImageView) pageView.findViewById(R.id.right1);
+                        i_right1.setImageResource(R.drawable.ic_right);
+                        ImageView i_right3 = (ImageView) pageView.findViewById(R.id.right3);
+                        i_right3.setImageResource(R.drawable.ic_right);
+                        ImageView i_right4 = (ImageView) pageView.findViewById(R.id.right4);
+                        i_right4.setImageResource(R.drawable.ic_right);
+                        ImageView i_right5 = (ImageView) pageView.findViewById(R.id.right5);
+                        i_right5.setImageResource(R.drawable.ic_right);
+                        View tongbu = pageView.findViewById(R.id.tongbu);
+                        tongbu.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                MainActivity myActivity = (MainActivity) getActivity();
+                                Menu menu = myActivity.getNavigationView().getMenu();
+                                List<PlanList> list = new PlanListDao(getContext()).getPlanListAll();
+                                for(PlanList planList : list) {
+                                    for(int i=0;i<menu.size();i++) {
+                                        if(menu.getItem(i).getTitle().equals(planList.getTitle())) {
+                                            menu.removeItem(i);
+                                            break;
+                                        }
+                                    }
+                                }
+                                final Request request = new Request.Builder()
+                                        .url(Utils.webUrl + "get_all_objects")
+                                        .build();
+
+                                OkHttpUtil.enqueue(request, new Callback() {
+                                    @Override
+                                    public void onFailure(Request request, IOException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    @Override
+                                    public void onResponse(Response response) throws IOException {
+                                        if (response.isSuccessful()) {
+                                            String body = response.body().string();
+                                            Log.e("login", body );
+                                            Gson gson = new Gson();
+                                            Utils.DBJSON dbjson = gson.fromJson(body, Utils.DBJSON.class);
+
+                                            for (PlanList planList : dbjson.getPlanLists()) {
+                                                new PlanListDao(getContext()).addLocal(planList);
+                                            }
+                                            for (Plan plan : dbjson.getPlans()) {
+                                                for (PlanList planList : dbjson.getPlanLists()) {
+                                                    if(planList.getWeb_db_id() == plan.getList_id()){
+                                                        plan.setPlanList(planList);
+                                                        break;
+                                                    }
+                                                }
+                                                new PlanDao(getContext()).add(plan);
+                                            }
+                                            for (CountDown countDown : dbjson.getCountDowns()) {
+                                                new CountDownDao(getContext()).add(countDown);
+                                            }
+                                            Handler handler = new Handler(Looper.getMainLooper());
+                                            Runnable runnable= new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    List<PlanList> list = new PlanListDao(getContext()).getPlanListAll();
+                                                    MainActivity myActivity = (MainActivity) getActivity();
+                                                    for(PlanList planList : list) {
+                                                        myActivity.resetNavigationView(planList);
+                                                    }
+                                                    myActivity.getNavigationView().refreshDrawableState();
+                                                }
+                                            };
+                                            handler.post(runnable);
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                        View relogin = pageView.findViewById(R.id.relogin);
+                        relogin.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Utils.username = null;
+                                new UserDao(getContext()).delete();
+                                ((MainActivity) getActivity()).addNewFragment(LoginFragment.newInstance(), "登录");
+                            }
+                        });
                         break;
                     default:;
                 }
@@ -214,12 +330,33 @@ public class MainFragment extends BaseFragment {
         navigationTabBar.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
+                switch (position) {
+                    case 0:
+                        refreshPlan();
+                        break;
+                    case 1:
+                        refreshCountdown();
+                        break;
+                    case 2:
+                        setInfo();
+                        break;
+                }
             }
 
             @Override
             public void onPageSelected(int position) {
                 navigationTabBar.getModels().get(position).hideBadge();
+                switch (position) {
+                    case 0:
+                        refreshPlan();
+                        break;
+                    case 1:
+                        refreshCountdown();
+                        break;
+                    case 2:
+                        setInfo();
+                        break;
+                }
             }
 
             @Override
@@ -238,6 +375,28 @@ public class MainFragment extends BaseFragment {
         navigationTabBar.setBadgeBgColor(Color.RED);
         navigationTabBar.setBadgeTitleColor(Color.WHITE);
         navigationTabBar.setBehaviorEnabled(true);
+
+        isInit = true;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        taskAdapter = new TaskAdapter();
+        countdownAdapter = new CountdownAdapter();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+//        setInfo();
+        refreshPlan();
+        refreshCountdown();
+    }
+
+    public void setInfo() {
+        touxiang.setImageResource(R.drawable.touxiang);
+        username.setText(Utils.username);
     }
 
     public void refreshPlan() {
@@ -247,6 +406,7 @@ public class MainFragment extends BaseFragment {
 
     public void refreshCountdown() {
         countdowns = new CountDownDao(getContext()).getAll();
+        countdownAdapter.notifyDataSetChanged();
     }
 
     private void setListViewPager(View pageView) {
@@ -331,6 +491,8 @@ public class MainFragment extends BaseFragment {
             ((CountdownViewHolder) holder).editButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
+                    Log.e("isssssssssssssssd", countdown.toString());
                     ((MainActivity)getActivity()).addNewFragment(ChangeCountdownFragment.newInstance(countdown), "倒计时详情");
                 }
             });
@@ -370,10 +532,11 @@ public class MainFragment extends BaseFragment {
 
         @Override
         public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
+
             final Plan plan = plans.get(position);
-            TaskViewHolder taskViewHolder = ((TaskViewHolder) holder);
+            final TaskViewHolder taskViewHolder = ((TaskViewHolder) holder);
             taskViewHolder.plan = plan;
-            final TextView title = ((TaskViewHolder) holder).title;
+            final TextView title = taskViewHolder.title;
             title.setText(plan.getTitle());
             title.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -381,15 +544,42 @@ public class MainFragment extends BaseFragment {
                     ((MainActivity) getActivity()).addNewFragment(ChangeTaskFragment.newInstance(plan), "计划详情");
                 }
             });
+            final ImageView image = taskViewHolder.image;
+            if(plan.getState() == Utils.STATE_FINISH) {
+                image.setImageResource(R.drawable.ic_add);
+            }
+            else if(plan.getState() == Utils.STATE_TODO) {
+                image.setImageResource(R.drawable.ic_right);
+            }
+            image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (plan.getState() == Utils.STATE_TODO) {
+                        Plan plan1 = plan;
+                        plan1.setState(Utils.STATE_FINISH);
+                        new PlanDao(getContext()).updateWebAndLocal(plan1);
+                        image.setImageResource(R.drawable.ic_add);
+                    }
+                    else if(plan.getState() == Utils.STATE_FINISH) {
+                        Plan plan1 = plan;
+                        plan1.setState(Utils.STATE_TODO);
+                        new PlanDao(getContext()).updateWebAndLocal(plan1);
+                        image.setImageResource(R.drawable.ic_right);
+                    }
+                    taskAdapter.notifyDataSetChanged();
+                }
+            });
         }
 
         class TaskViewHolder extends RecyclerView.ViewHolder{
             TextView title;
+            ImageView image;
             Plan plan;
 
             public TaskViewHolder(View view) {
                 super(view);
                 title = (TextView) view.findViewById(R.id.task_title);
+                image = (ImageView) view.findViewById(R.id.btn_finish);
             }
         }
     }

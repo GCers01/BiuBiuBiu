@@ -1,6 +1,5 @@
 package me.price.nicelife.fragments;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -23,7 +22,7 @@ import me.price.nicelife.utils.Utils;
 public class CreateTaskFragment extends BaseFragment {
 
     View view;
-    Activity myActivity;
+    MainActivity myActivity;
     int alarmId;
 
     AwesomeValidation awesomeValidation;
@@ -33,7 +32,7 @@ public class CreateTaskFragment extends BaseFragment {
         super.onViewCreated(view, savedInstanceState);
 
         awesomeValidation = new AwesomeValidation(ValidationStyle.BASIC);
-        myActivity = getActivity();
+        myActivity = (MainActivity) getActivity();
         awesomeValidation.addValidation(getActivity(),R.id.edt_title,"([\\s\\S]+)", R.string.err_title);
         awesomeValidation.addValidation(getActivity(),R.id.edt_content,"([\\s\\S]*)", R.string.err_content);
         awesomeValidation.addValidation(getActivity(),R.id.edt_priority, "([\\s\\S]*)", R.string.err_priority);
@@ -60,17 +59,17 @@ public class CreateTaskFragment extends BaseFragment {
                     String ddl = limitedDate.getText().toString();
                     EditText prioritys = (EditText) view.findViewById(R.id.edt_priority);
                     int priority = Integer.parseInt(prioritys.getText().toString());
-                    new PlanDao(getContext()).add(Plan.newInstance(title, content, priority, Utils.string2Date(ddl), Utils.nowPlanList));
+                    new PlanDao(getContext()).addWebAndLocal(Plan.newInstance(title, content, priority, Utils.string2Date(ddl), Utils.nowPlanList));
                     closeKeyboard();
-                    ((MainActivity)myActivity).backFragment();
+                    myActivity.backFragment();
                 }
             }
         });
 
-        view.findViewById(R.id.btn_clr).setOnClickListener(new View.OnClickListener() {
+        view.findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                awesomeValidation.clear();
+                myActivity.backFragment();
             }
         });
     }

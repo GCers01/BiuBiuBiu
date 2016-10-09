@@ -31,6 +31,9 @@ public class Plan {
     @DatabaseField(columnName = "web_db_id")
     private int web_db_id;
 
+    @DatabaseField(columnName = "list_id")
+    private int list_id;
+
 
     public Plan(String title, String content, PlanList planList, int state,int priority, Date start_time, int synchronization,int db_state) {
         this.title =title;
@@ -45,6 +48,15 @@ public class Plan {
     public Plan(){
 
     }
+
+    public int getList_id() {
+        return list_id;
+    }
+
+    public void setList_id(int list_id) {
+        this.list_id = list_id;
+    }
+
     public static Plan newInstance(String title, String content, int priority, Date start_time, PlanList planList) {
         return new Plan(title, content, planList, Utils.STATE_TODO, priority, start_time , Utils.IS_SYN, Utils.STATE_ADD);
     }
@@ -136,5 +148,7 @@ public class Plan {
                 "\nstart_time: "+ start_time+ "    PlanList: "+planList+
                 "\ntongbu: "+ this.synchronization +  "    dbState: " + db_state + "\n";
     }
+
+
 }
 

@@ -23,6 +23,8 @@ import java.util.HashMap;
 
 import me.price.nicelife.MainActivity;
 import me.price.nicelife.R;
+import me.price.nicelife.bean.User;
+import me.price.nicelife.db.UserDao;
 import me.price.nicelife.okhttp.OkHttpUtil;
 import me.price.nicelife.utils.Utils;
 
@@ -56,7 +58,6 @@ public class LoginFragment extends BaseFragment {
                     String password = edtPassword.getText().toString();
                     closeKeyboard();
                     login(username, password);
-                    ((MainActivity)myActivity).backFragment();
                 }
             }
         });
@@ -78,7 +79,7 @@ public class LoginFragment extends BaseFragment {
         return view;
     }
 
-    public void login(String userName, String passWord) {
+    public void login(final String userName, String passWord) {
 
         RequestBody formBody = new FormEncodingBuilder()
                 .add("username", userName)
@@ -98,7 +99,7 @@ public class LoginFragment extends BaseFragment {
             public void onResponse(Response response) throws IOException {
                 if (response.isSuccessful()) {
                     String body = response.body().string();
-                    HashMap<String, String> files = Utils.toHashMap(body);
+                    final HashMap<String, String> files = Utils.toHashMap(body);
                     if (files.get("result").equals("true")) {
                         Handler handler = new Handler(Looper.getMainLooper());
                         Runnable runnable= new Runnable() {
@@ -110,6 +111,10 @@ public class LoginFragment extends BaseFragment {
                                         .setPositiveButton("确认", null)
                                         .create();
                                 isExit.show();
+                                Utils.username = userName;
+                                new UserDao(getContext()).add(User.newInstance(userName));
+                                myActivity.updateTouxiang();
+                                myActivity.backFragment();
                             }
                         };
                         handler.post(runnable);
@@ -140,4 +145,6 @@ public class LoginFragment extends BaseFragment {
         fragment.setArguments(args);
         return  fragment;
     }
+
+
 }

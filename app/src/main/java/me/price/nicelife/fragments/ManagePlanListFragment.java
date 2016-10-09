@@ -120,6 +120,18 @@ public class ManagePlanListFragment extends BaseFragment {
         planListAdapter.notifyDataSetChanged();
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        planListAdapter = new PlanListAdapter();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshPlanList();
+    }
+
     public static ManagePlanListFragment newInstance() {
 
         ManagePlanListFragment fragment = new ManagePlanListFragment();

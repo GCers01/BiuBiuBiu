@@ -16,6 +16,7 @@ import me.price.nicelife.bean.Alarm;
 import me.price.nicelife.bean.CountDown;
 import me.price.nicelife.bean.Plan;
 import me.price.nicelife.bean.PlanList;
+import me.price.nicelife.bean.User;
 
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper
 {
@@ -25,7 +26,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper
 
     private DatabaseHelper(Context context)
     {
-        super(context, TABLE_NAME, null, 2);//版本号
+        super(context, TABLE_NAME, null, 6);//版本号
     }
 
     @Override
@@ -38,6 +39,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper
             TableUtils.createTable(connectionSource, Plan.class);
             TableUtils.createTable(connectionSource, CountDown.class);
             TableUtils.createTable(connectionSource, Alarm.class);
+
+            TableUtils.createTable(connectionSource, User.class);
         } catch (SQLException e)
         {
             e.printStackTrace();
@@ -54,6 +57,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper
             TableUtils.dropTable(connectionSource, Plan.class, true);
             TableUtils.dropTable(connectionSource, CountDown.class, true);
             TableUtils.dropTable(connectionSource, Alarm.class, true);
+            TableUtils.dropTable(connectionSource, User.class, true);
             onCreate(database, connectionSource);
         } catch (SQLException e)
         {

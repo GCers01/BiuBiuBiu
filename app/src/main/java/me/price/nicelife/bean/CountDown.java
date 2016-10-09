@@ -124,7 +124,8 @@ public class CountDown {
         return  "ID: "+id+
                 "\ntitle: "+title+"     content: "+content+
                 "\nstart_time: "+ start_time+ "    end_time: "+end_time+
-                "\ntongbu: "+ this.synchronization +  "    dbState: " + db_state + "\n";
+                "\ntongbu: "+ this.synchronization +  "    dbState: " + db_state + "\n"
+                +"web id: " + this.web_db_id+"\n";
     }
 }
 

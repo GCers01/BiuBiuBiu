@@ -43,7 +43,7 @@ public class PlanListDao {
     }
 
     ///******************************************增加一个清单************************************************
-    public void add(PlanList planList)
+    public void addLocal(PlanList planList)
     {
         try
         {
@@ -54,11 +54,13 @@ public class PlanListDao {
         }
     }
 
-    public void addWebAndLocal(PlanList planList) {
-        int syn;
+
+
+
+    public void add(PlanList planList) {
         planList.setSynchronization(Utils.NOT_SYN);
         planList.setDb_state(Utils.STATE_ADD);
-        this.add(planList);
+        this.addLocal(planList);
         if (Utils.isConnect) {
             this.addWeb(planList);
         }
@@ -89,7 +91,7 @@ public class PlanListDao {
                         int plan_list_id = Integer.parseInt(files.get("plan_list_id"));
                         planList.setWeb_db_id(plan_list_id);
                         planList.setSynchronization(Utils.IS_SYN);
-                        update(planList);
+                        updateLocal(planList);
                     }
                 }
             }
@@ -97,10 +99,10 @@ public class PlanListDao {
     }
 
     ///*更新一个清单***********************************************************************************
-    public void updateWebAndLocal(PlanList planList) {
+    public void update(PlanList planList) {
         planList.setSynchronization(Utils.NOT_SYN);
         planList.setDb_state(Utils.STATE_MODIFY);
-        this.add(planList);
+        this.updateLocal(planList);
         if (Utils.isConnect) {
             this.updateWeb(planList);
         }
@@ -129,14 +131,14 @@ public class PlanListDao {
                     HashMap<String, String> files = Utils.toHashMap(body);
                     if (files.get("result").equals("true")) {
                         planList.setSynchronization(Utils.IS_SYN);
-                        update(planList);
+                        updateLocal(planList);
                     }
                 }
             }
         });
     }
 
-    public void update(PlanList planList) {
+    public void updateLocal(PlanList planList) {
         try {
             planListDaoOpe.update(planList);
         } catch (SQLException e) {
@@ -186,10 +188,10 @@ public class PlanListDao {
 
     //*删除一个清单************************************************************************************
     @SuppressWarnings("unchecked")
-    public void delete(PlanList planList) {
+    public void deleteLocal(PlanList planList) {
         planList.setDb_state(Utils.STATE_DELETE);
         planList.setSynchronization(Utils.NOT_SYN);
-        update(planList);
+        updateLocal(planList);
 
         try {
             Dao<Plan,Integer> planDao = helper.getDao(Plan.class);
@@ -227,7 +229,7 @@ public class PlanListDao {
                     if (files.get("result").equals("true")) {
                         int plan_list_id = Integer.parseInt(files.get("plan_list_id"));
                         planList.setSynchronization(Utils.IS_SYN);
-                        update(planList);
+                        updateLocal(planList);
 
                         try {
                             Dao<Plan, Integer> planDao = helper.getDao(Plan.class);
@@ -245,10 +247,10 @@ public class PlanListDao {
             }
         });
     }
-    public void deleteWebAndLocal(PlanList planList){
+    public void delete(PlanList planList){
         planList.setSynchronization(Utils.NOT_SYN);
         planList.setDb_state(Utils.STATE_DELETE);
-        this.delete(planList);
+        this.deleteLocal(planList);
         if (Utils.isConnect) {
             this.updateWeb(planList);
         }

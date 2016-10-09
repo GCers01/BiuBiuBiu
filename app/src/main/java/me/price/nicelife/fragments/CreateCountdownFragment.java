@@ -1,6 +1,5 @@
 package me.price.nicelife.fragments;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -23,7 +22,7 @@ import me.price.nicelife.utils.Utils;
 public class CreateCountdownFragment extends BaseFragment {
 
     View view;
-    Activity myActivity;
+    MainActivity myActivity;
 
     AwesomeValidation awesomeValidation;
 
@@ -32,7 +31,7 @@ public class CreateCountdownFragment extends BaseFragment {
         super.onViewCreated(view, savedInstanceState);
 
         awesomeValidation = new AwesomeValidation(ValidationStyle.BASIC);
-        myActivity = getActivity();
+        myActivity = (MainActivity) getActivity();
         awesomeValidation.addValidation(getActivity(),R.id.edt_title,"([\\s\\S]+)", R.string.err_title);
         awesomeValidation.addValidation(getActivity(),R.id.edt_content,"([\\s\\S]*)", R.string.err_content);
         awesomeValidation.addValidation(getActivity(),R.id.limitedDate,"([\\s\\S]*)" , R.string.err_year);
@@ -48,17 +47,17 @@ public class CreateCountdownFragment extends BaseFragment {
                     EditText limitedDate = (EditText) view.findViewById(R.id.limitedDate);
                     String ddl = limitedDate.getText().toString();
                     CountDown countDown = CountDown.newInstancer(title, content, Utils.string2Date(ddl), null);
-                    new CountDownDao(getContext()).add(countDown);
+                    new CountDownDao(getContext()).addWebAndLocal(countDown);
                     closeKeyboard();
-                    ((MainActivity)myActivity).backFragment();
+                    myActivity.backFragment();
                 }
             }
         });
 
-        view.findViewById(R.id.btn_clr).setOnClickListener(new View.OnClickListener() {
+        view.findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                awesomeValidation.clear();
+                myActivity.backFragment();
             }
         });
     }

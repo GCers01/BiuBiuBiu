@@ -131,18 +131,26 @@ public class PlanDao {
         return plan;
     }
 
-
     public List<Plan> listByPlanListId(int planListId)
     {
         try
         {
-            return planDaoOpe.queryBuilder().where().eq("plan_list_id", planListId)
+            return planDaoOpe.queryBuilder().where().eq("plan_list_id", planListId).and().ne("db_state", Utils.STATE_DELETE)
                     .query();
         } catch (SQLException e)
         {
             e.printStackTrace();
         }
         return new ArrayList<Plan>();
+    }
+
+    public List<Plan> getAll(){
+        try {
+            return planDaoOpe.queryForAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
     }
 
     //*******update*****************************************
@@ -157,7 +165,7 @@ public class PlanDao {
     public void updateWebAndLocal(Plan plan) {
         int syn;
         plan.setSynchronization(Utils.NOT_SYN);
-        plan.setDb_state(Utils.STATE_ADD);
+        plan.setDb_state(Utils.STATE_MODIFY);
         this.update(plan);
         if (Utils.isConnect) {
             this.updateWeb(plan);
@@ -238,6 +246,26 @@ public class PlanDao {
                 }
             }
         });
+    }
+
+    //*同步到服务器
+    public void synToWeb(){
+        List<Plan> plans = this.getAll();
+        for(Plan plan : plans){
+            if(plan.getSynchronization()==Utils.NOT_SYN){
+                switch (plan.getDb_state()){
+                    case Utils.STATE_ADD:
+                        addWeb(plan);
+                        break;
+                    case Utils.STATE_MODIFY:
+                        updateWeb(plan);
+                        break;
+                    case Utils.STATE_DELETE:
+                        deleteeWeb(plan);
+                        break;
+                }
+            }
+        }
     }
 
 

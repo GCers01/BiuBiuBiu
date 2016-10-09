@@ -1,6 +1,5 @@
 package me.price.nicelife.fragments;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -24,7 +23,7 @@ public class ChangeTaskFragment extends BaseFragment {
 
     Plan plan;
     View view;
-    Activity myActivity;
+    MainActivity myActivity;
 
     AwesomeValidation awesomeValidation;
 
@@ -33,7 +32,7 @@ public class ChangeTaskFragment extends BaseFragment {
         super.onViewCreated(view, savedInstanceState);
 
         awesomeValidation = new AwesomeValidation(ValidationStyle.BASIC);
-        myActivity = getActivity();
+        myActivity = (MainActivity) getActivity();
         awesomeValidation.addValidation(getActivity(),R.id.edt_title,"([\\s\\S]+)", R.string.err_title);
         awesomeValidation.addValidation(getActivity(),R.id.edt_content,"([\\s\\S]*)", R.string.err_content);
         awesomeValidation.addValidation(getActivity(),R.id.edt_priority, "([\\s\\S]*)", R.string.err_priority);
@@ -61,17 +60,20 @@ public class ChangeTaskFragment extends BaseFragment {
                     plan.setContent(content);
                     plan.setStart_time(Utils.string2Date(ddl));
                     plan.setPriority(priority);
-                    new PlanDao(getContext()).update(plan);
+                    new PlanDao(getContext()).updateWebAndLocal(plan);
                     closeKeyboard();
-                    ((MainActivity)myActivity).backFragment();
+                    myActivity.backFragment();
                 }
             }
         });
 
-        view.findViewById(R.id.btn_clr).setOnClickListener(new View.OnClickListener() {
+        view.findViewById(R.id.btn_del).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((MainActivity)myActivity).backFragment();
+                new PlanDao(getContext()).deleteWebAndLocal(plan);
+//                MainFragment fragment = (MainFragment) myActivity.getBackFragment();
+//                fragment.refreshPlan();
+                myActivity.backFragment();
             }
         });
     }

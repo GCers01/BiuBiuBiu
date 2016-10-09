@@ -66,6 +66,7 @@
             <TextView
                 android:id="@+id/add_alarm"
                 android:text="点击添加闹钟提醒"
+                android:paddingTop="20dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
@@ -82,8 +83,8 @@
         android:layout_weight="1">
 
         <Button
-            android:text="清空"
-            android:id="@+id/btn_clr"
+            android:text="返回"
+            android:id="@+id/btn_back"
             android:layout_width="wrap_content"
             android:layout_height="75dp"
             android:layout_weight="1"/>

@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,7 +56,6 @@ public class RegisterFragment extends BaseFragment {
                     String password = edtPassword.getText().toString();
                     closeKeyboard();
                     register(username, password);
-                    ((MainActivity)myActivity).backFragment();
                 }
             }
         });
@@ -65,7 +63,7 @@ public class RegisterFragment extends BaseFragment {
         view.findViewById(R.id.btn_regester).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((MainActivity) myActivity).addNewFragment(RegisterFragment.newInstance(),"注册");
+                myActivity.addNewFragment(RegisterFragment.newInstance(),"注册");
             }
         });
     }
@@ -119,6 +117,7 @@ public class RegisterFragment extends BaseFragment {
                                         .setPositiveButton("确认", null)
                                         .create();
                                 isExit.show();
+                                myActivity.backFragment();
                             }
                         };
                         handler.post(runnable);

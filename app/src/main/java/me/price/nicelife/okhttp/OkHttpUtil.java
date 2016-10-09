@@ -16,11 +16,13 @@ import java.net.CookiePolicy;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
+import me.price.nicelife.fragments.MainFragment;
 import me.price.nicelife.utils.Utils;
 
 public class OkHttpUtil {
     private static final OkHttpClient mOkHttpClient = new OkHttpClient();
 
+    public static MainFragment mainFragment;
 
     static{
         mOkHttpClient.setConnectTimeout(300, TimeUnit.SECONDS);

@@ -15,10 +15,8 @@ import me.price.nicelife.MainActivity;
 import me.price.nicelife.R;
 import me.price.nicelife.bean.PlanList;
 import me.price.nicelife.db.PlanListDao;
+import me.price.nicelife.utils.Utils;
 
-/**
- * Created by jx-pc on 2016/10/8.
- */
 public class ChangePlanListFragment extends BaseFragment {
 
     View view;
@@ -42,6 +40,7 @@ public class ChangePlanListFragment extends BaseFragment {
                 if(awesomeValidation.validate()) {
                     String title = titleET.getText().toString();
                     planList.setTitle(title);
+                    Utils.nowPlanList = new PlanListDao(getContext()).getByName("default").get(0);
                     closeKeyboard();
                     new PlanListDao(getContext()).update(planList);
                     myActivity.backFragment();

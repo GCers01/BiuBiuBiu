@@ -1,9 +1,14 @@
 package me.price.nicelife;
 
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Configuration;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -12,16 +17,23 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import me.price.nicelife.bean.PlanList;
+import me.price.nicelife.bean.User;
+import me.price.nicelife.db.CountDownDao;
+import me.price.nicelife.db.PlanDao;
 import me.price.nicelife.db.PlanListDao;
+import me.price.nicelife.db.UserDao;
 import me.price.nicelife.fragments.AlarmListFragment;
 import me.price.nicelife.fragments.CalendarFragment;
 import me.price.nicelife.fragments.CountdownFragment;
@@ -55,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
     private void initToolbar() {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        setTitle("今日计划");
+        setTitle("Nice Life");
     }
 
     private void initDrawerLayout() {
@@ -96,6 +108,13 @@ public class MainActivity extends AppCompatActivity {
         return navigationView;
     }
 
+    public void updateTouxiang() {
+        TextView header = (TextView) navigationView.getHeaderView(0).findViewById(R.id.header);
+        ImageView imageView = (ImageView) navigationView.getHeaderView(0).findViewById(R.id.touxiang);
+        imageView.setImageResource(R.drawable.touxiang);
+        header.setText(Utils.username);
+    }
+
     public void setNavigationView() {
 
         navigationView = (NavigationView) findViewById(R.id.navigtion_view);
@@ -123,13 +142,16 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public boolean onNavigationItemSelected(MenuItem menuItem) {
 
+                        if(Utils.username == null) {
+                            drawerLayout.closeDrawers();
+                            return false;
+                        }
+
                         int id = menuItem.getItemId();
 
                         switch (id) {
 
                             case R.id.nav_all_plan:
-                                Utils.nowPlanList = new PlanListDao(getContext()).getByName("default").get(0);
-                                ((MainFragment) mainFragment).refreshPlan();
                                 addNewFragment(mainFragment, "今日计划", menuItem);
                                 break;
                             case R.id.nav_countdown:
@@ -206,9 +228,12 @@ public class MainActivity extends AppCompatActivity {
 
         setFragmentManager();
 
+        connectionListener();
+
         navigationView.getHeaderView(0).findViewById(R.id.header).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(Utils.username != null) return;
                 addNewFragment(LoginFragment.newInstance(), "登录");
                 drawerLayout.closeDrawers();
             }
@@ -216,7 +241,50 @@ public class MainActivity extends AppCompatActivity {
 
         Utils.nowPlanList = new PlanListDao(getContext()).getByName("default").get(0);
 
-        addNewFragment(mainFragment, "今日计划", navigationView.getMenu().getItem(0));
+        addNewFragment(mainFragment, "Nice Life", navigationView.getMenu().getItem(0));
+
+        User user = new UserDao(getContext()).get();
+        if(user == null) {
+            Log.e("TAG=======", "=  =!");
+        }
+        else {
+            Log.e("tag=======",user.toString());
+        }
+        if(user == null) {
+            addNewFragment(LoginFragment.newInstance(), "登录", navigationView.getMenu().getItem(0));
+        }
+        else {
+            Utils.username = user.getUsername();
+            updateTouxiang();
+        }
+    }
+
+    public void connectionListener(){
+        IntentFilter filter=new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        this.registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo mobNetInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+                NetworkInfo wifiNetInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+
+                if (!mobNetInfo.isConnected() && !wifiNetInfo.isConnected()) {
+                    Utils.isConnect = false;
+                    //改变背景或者 处理网络的全局变量
+                } else {
+                    Utils.isConnect = true;
+                    //改变背景或者 处理网络的全局变量
+                    new PlanListDao(getBaseContext()).synToWeb();
+                    new PlanDao(getBaseContext()).synToWeb();
+                    new CountDownDao(getBaseContext()).synToWeb();
+
+//                    OkHttpUtil.get_all_objects(getContext());
+
+                }
+            }
+        }, filter);
+
     }
 
     public void addNewFragment(Fragment fragment, String title, MenuItem menuItem) {
@@ -247,17 +315,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onPostCreate(Bundle savedInstanceState) {
-
         super.onPostCreate(savedInstanceState);
-
         actionBarDrawerToggle.syncState();
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-
         super.onConfigurationChanged(newConfig);
-
         actionBarDrawerToggle.onConfigurationChanged(newConfig);
     }
 
@@ -280,7 +344,7 @@ public class MainActivity extends AppCompatActivity {
 
             int size = fragmentDataList.size();
 
-            if (size > 1) {
+            if (size > 1 && Utils.username != null) {
 
                 backFragment();
 
